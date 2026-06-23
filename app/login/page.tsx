@@ -1,11 +1,3 @@
-// =============================================================================
-//  LOGIN PAGE  —  lives at "/login"
-// =============================================================================
-//  Passwordless sign-in: the member types their email, we email them a one-time
-//  link, they click it, and they're logged in. The <form> uses a Server Action
-//  (the inline async function with "use server") that calls Auth.js's signIn.
-// =============================================================================
-
 import { signIn } from "@/auth";
 
 export default function LoginPage() {

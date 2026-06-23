@@ -1,41 +1,121 @@
-// =============================================================================
-//  DASHBOARD  —  lives at "/dashboard" (members only)
-// =============================================================================
-//  A protected page. We read the session with auth(); if there's none, we send
-//  the visitor to /login. For now it just proves login works by showing who
-//  you are. In the next phase this becomes the real membership dashboard.
-// =============================================================================
-
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { auth, signOut } from "@/auth";
+import { membershipRepository } from "@/lib/repositories/membershipRepository";
+import {
+  getMembershipStatus,
+  nextPeriodEnd,
+  MEMBERSHIP_FEE_DKK,
+  MOBILEPAY_NUMBER,
+} from "@/lib/membership";
+
+export const dynamic = "force-dynamic";
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("da-DK", { dateStyle: "long" }).format(date);
+}
 
 export default async function DashboardPage() {
   const session = await auth();
+  if (!session) redirect("/login");
 
-  // Not logged in? Bounce to the login page.
-  if (!session) {
-    redirect("/login");
+  const user = await membershipRepository.findUserWithPayments(session.user.id);
+  if (!user) redirect("/login");
+
+  const status = getMembershipStatus(user.membershipExpiresAt);
+  const pending = user.payments.find((p) => p.status === "PENDING");
+
+  async function registerPayment() {
+    "use server";
+    const s = await auth();
+    if (!s) return;
+
+    // Only one pending payment allowed at a time.
+    const existing = await membershipRepository.findPendingPayment(s.user.id);
+    if (existing) return;
+
+    await membershipRepository.createPendingPayment({
+      userId: s.user.id,
+      amountDkk: MEMBERSHIP_FEE_DKK,
+      periodEnd: nextPeriodEnd(s.user.membershipExpiresAt),
+      method: "MOBILEPAY",
+    });
+    revalidatePath("/dashboard");
   }
 
   return (
     <main className="mx-auto max-w-xl px-6 py-16">
-      <h1 className="text-3xl font-bold">Welcome 👋</h1>
-      <p className="mt-3 text-gray-600">
-        You&apos;re signed in as <strong>{session.user.email}</strong>.
-      </p>
-      <p className="mt-1 text-sm text-gray-500">Role: {session.user.role}</p>
+      <h1 className="text-3xl font-bold">Your membership</h1>
+      <p className="mt-1 text-sm text-gray-500">Signed in as {user.email}</p>
 
-      {/* Sign out via a Server Action */}
+      <div className="mt-8 rounded-xl border border-gray-200 p-5">
+        {status === "ACTIVE" && (
+          <p className="text-green-700">
+            ✅ Active — valid until{" "}
+            <strong>{formatDate(user.membershipExpiresAt!)}</strong>
+          </p>
+        )}
+        {status === "EXPIRING_SOON" && (
+          <p className="text-amber-700">
+            ⚠️ Expiring soon — valid until{" "}
+            <strong>{formatDate(user.membershipExpiresAt!)}</strong>
+          </p>
+        )}
+        {status === "EXPIRED" && (
+          <p className="text-red-700">
+            ⛔ Expired{" "}
+            {user.membershipExpiresAt
+              ? `on ${formatDate(user.membershipExpiresAt)}`
+              : ""}
+          </p>
+        )}
+        {status === "NONE" && (
+          <p className="text-gray-700">You&apos;re not a paying member yet.</p>
+        )}
+      </div>
+
+      {pending ? (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
+          <h2 className="font-semibold">Payment registered — please transfer</h2>
+          <p className="mt-2 text-sm text-gray-700">
+            Send <strong>{pending.amountDkk} kr</strong> via MobilePay to{" "}
+            <strong>{MOBILEPAY_NUMBER}</strong>, with your email as the message.
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            Once we confirm the transfer, your membership will be extended to{" "}
+            {formatDate(pending.periodEnd)}. (Awaiting confirmation.)
+          </p>
+        </div>
+      ) : (
+        <div className="mt-6 rounded-xl border border-gray-200 p-5">
+          <h2 className="font-semibold">
+            {status === "NONE" ? "Join" : "Renew"} — {MEMBERSHIP_FEE_DKK} kr
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Register your payment, then transfer the amount via MobilePay. An
+            admin confirms it and your membership is extended.
+          </p>
+          <form action={registerPayment} className="mt-4">
+            <button
+              type="submit"
+              className="rounded-full bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800"
+            >
+              Register payment
+            </button>
+          </form>
+        </div>
+      )}
+
       <form
         action={async () => {
           "use server";
           await signOut({ redirectTo: "/login" });
         }}
-        className="mt-8"
+        className="mt-10"
       >
         <button
           type="submit"
-          className="rounded-full border border-gray-300 px-6 py-3 font-medium transition hover:bg-gray-100"
+          className="text-sm text-gray-500 underline hover:text-gray-800"
         >
           Sign out
         </button>

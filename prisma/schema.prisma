@@ -10,13 +10,8 @@ datasource db {
   provider = "postgresql"
 }
 
-// =============================================================================
-//  AUTH.JS TABLES
-// =============================================================================
-//  These four models are what Auth.js (our login system) needs. We mostly
-//  leave them as the standard shape; the membership-specific fields live on
-//  User below.
-// =============================================================================
+// Auth.js adapter tables (User, Account, Session, VerificationToken).
+// Membership-specific fields live on User below.
 
 model User {
   id            String    @id @default(cuid())
@@ -27,9 +22,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
-  // ---- Membership-specific fields ----
-  role                Role      @default(MEMBER) // ADMIN can manage everyone
-  membershipExpiresAt DateTime? // the heart of the app: when dues run out
+  role                Role      @default(MEMBER)
+  membershipExpiresAt DateTime?
   payments            Payment[]
 
   createdAt DateTime @default(now())
@@ -71,19 +65,15 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
-// =============================================================================
-//  MEMBERSHIP / PAYMENTS
-// =============================================================================
-
 model Payment {
   id          String        @id @default(cuid())
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
-  amountDkk   Int // whole kroner, e.g. 600
-  periodEnd   DateTime // membership is valid until this date once confirmed
+  amountDkk   Int // whole kroner
+  periodEnd   DateTime // membership runs until this date once confirmed
   method      PaymentMethod @default(MOBILEPAY)
-  status      PaymentStatus @default(PENDING) // PENDING until an admin confirms it
-  reference   String? // the reference the member used when paying
+  status      PaymentStatus @default(PENDING)
+  reference   String?
   createdAt   DateTime      @default(now())
   confirmedAt DateTime?
 }
