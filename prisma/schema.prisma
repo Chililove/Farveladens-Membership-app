@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+//  AUTH.JS TABLES
+// =============================================================================
+//  These four models are what Auth.js (our login system) needs. We mostly
+//  leave them as the standard shape; the membership-specific fields live on
+//  User below.
+// =============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  // ---- Membership-specific fields ----
+  role                Role      @default(MEMBER) // ADMIN can manage everyone
+  membershipExpiresAt DateTime? // the heart of the app: when dues run out
+  payments            Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// =============================================================================
+//  MEMBERSHIP / PAYMENTS
+// =============================================================================
+
+model Payment {
+  id          String        @id @default(cuid())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  amountDkk   Int // whole kroner, e.g. 600
+  periodEnd   DateTime // membership is valid until this date once confirmed
+  method      PaymentMethod @default(MOBILEPAY)
+  status      PaymentStatus @default(PENDING) // PENDING until an admin confirms it
+  reference   String? // the reference the member used when paying
+  createdAt   DateTime      @default(now())
+  confirmedAt DateTime?
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum PaymentMethod {
+  MOBILEPAY
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+}
