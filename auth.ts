@@ -35,8 +35,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   pages: {
     signIn: "/login",
+    // Send rejected sign-ins back to the login page rather than Auth.js's
+    // default error screen, so the message appears in context.
+    error: "/login",
   },
   callbacks: {
+    // Membership is invite-only: an admin adds the email first, then that
+    // person can request a login link. Without this, Auth.js would happily
+    // create an account for any address typed into the form.
+    async signIn({ user, account }) {
+      // The demo provider can only ever return one of the two demo accounts,
+      // and it creates them itself, so it doesn't need the allowlist check.
+      if (account?.provider === "demo") return true;
+
+      const email = user.email?.toLowerCase();
+      if (!email) return false;
+
+      const existing = await prisma.user.findUnique({ where: { email } });
+      return Boolean(existing);
+    },
+
     // With JWT sessions the token only carries the user id, so the custom
     // fields are read from the database each time. That keeps role and
     // membership expiry correct immediately after an admin confirms a payment.

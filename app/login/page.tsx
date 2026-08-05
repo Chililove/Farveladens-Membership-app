@@ -1,13 +1,26 @@
 import { signIn } from "@/auth";
 import { DEMO_ENABLED } from "@/lib/demo";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   return (
     <main className="mx-auto max-w-md px-6 py-24">
       <h1 className="text-3xl font-bold">Sign in</h1>
       <p className="mt-3 text-gray-600 dark:text-gray-400">
         Enter your email and we&apos;ll send you a secure login link.
       </p>
+
+      {error === "AccessDenied" && (
+        <p className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+          That email isn&apos;t a registered member. Ask the board to add you
+          first.
+        </p>
+      )}
 
       <form
         action={async (formData: FormData) => {
