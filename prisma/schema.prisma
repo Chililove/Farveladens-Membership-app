@@ -24,6 +24,7 @@ model User {
 
   role                Role      @default(MEMBER)
   membershipExpiresAt DateTime?
+  rulesAcceptedAt     DateTime? // when the member accepted the rules (null = not yet)
   payments            Payment[]
 
   createdAt DateTime @default(now())

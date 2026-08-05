@@ -23,6 +23,9 @@ export default async function DashboardPage() {
   const user = await membershipRepository.findUserWithPayments(session.user.id);
   if (!user) redirect("/login");
 
+  // Must accept the rules before using the dashboard.
+  if (!user.rulesAcceptedAt) redirect("/rules");
+
   const status = getMembershipStatus(user.membershipExpiresAt);
   const pending = user.payments.find((p) => p.status === "PENDING");
 

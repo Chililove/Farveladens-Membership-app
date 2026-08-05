@@ -32,4 +32,12 @@ export const membershipRepository = {
       },
     });
   },
+
+  // Record that a member accepted the rules (timestamp doubles as the audit log).
+  acceptRules(userId: string) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { rulesAcceptedAt: new Date() },
+    });
+  },
 };
