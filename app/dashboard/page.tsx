@@ -5,7 +5,8 @@ import { membershipRepository } from "@/lib/repositories/membershipRepository";
 import {
   getMembershipStatus,
   nextPeriodEnd,
-  MEMBERSHIP_FEE_DKK,
+  getPlan,
+  MEMBERSHIP_PLANS,
   MOBILEPAY_NUMBER,
 } from "@/lib/membership";
 
@@ -25,10 +26,13 @@ export default async function DashboardPage() {
   const status = getMembershipStatus(user.membershipExpiresAt);
   const pending = user.payments.find((p) => p.status === "PENDING");
 
-  async function registerPayment() {
+  async function registerPayment(formData: FormData) {
     "use server";
     const s = await auth();
     if (!s) return;
+
+    const plan = getPlan(String(formData.get("planId")));
+    if (!plan) return; // ignore unknown/tampered plan ids
 
     // Only one pending payment allowed at a time.
     const existing = await membershipRepository.findPendingPayment(s.user.id);
@@ -36,8 +40,8 @@ export default async function DashboardPage() {
 
     await membershipRepository.createPendingPayment({
       userId: s.user.id,
-      amountDkk: MEMBERSHIP_FEE_DKK,
-      periodEnd: nextPeriodEnd(s.user.membershipExpiresAt),
+      amountDkk: plan.amountDkk,
+      periodEnd: nextPeriodEnd(s.user.membershipExpiresAt, plan.months),
       method: "MOBILEPAY",
     });
     revalidatePath("/dashboard");
@@ -89,20 +93,30 @@ export default async function DashboardPage() {
       ) : (
         <div className="mt-6 rounded-xl border border-gray-200 p-5">
           <h2 className="font-semibold">
-            {status === "NONE" ? "Join" : "Renew"} — {MEMBERSHIP_FEE_DKK} kr
+            {status === "NONE" ? "Choose a plan to join" : "Renew — choose a plan"}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Register your payment, then transfer the amount via MobilePay. An
-            admin confirms it and your membership is extended.
+            Pick a plan, then transfer the amount via MobilePay. An admin
+            confirms it and your membership is extended.
           </p>
-          <form action={registerPayment} className="mt-4">
-            <button
-              type="submit"
-              className="rounded-full bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800"
-            >
-              Register payment
-            </button>
-          </form>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {MEMBERSHIP_PLANS.map((plan) => (
+              <form key={plan.id} action={registerPayment}>
+                <input type="hidden" name="planId" value={plan.id} />
+                <button
+                  type="submit"
+                  className="w-full rounded-xl border border-gray-300 p-4 text-left transition hover:border-black"
+                >
+                  <span className="block text-lg font-semibold">
+                    {plan.amountDkk} kr
+                  </span>
+                  <span className="block text-sm text-gray-500">
+                    {plan.label}
+                  </span>
+                </button>
+              </form>
+            ))}
+          </div>
         </div>
       )}
 

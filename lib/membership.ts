@@ -1,10 +1,23 @@
-// Config comes from env vars so nothing sensitive is hard-coded in the repo.
-export const MEMBERSHIP_FEE_DKK = Number(process.env.MEMBERSHIP_FEE_DKK ?? 600);
-export const MEMBERSHIP_PERIOD_MONTHS = Number(
-  process.env.MEMBERSHIP_PERIOD_MONTHS ?? 6
-);
 export const MOBILEPAY_NUMBER =
   process.env.PAYMENT_MOBILEPAY_NUMBER ?? "(payment number not set)";
+
+// The membership plans members can choose from.
+export type MembershipPlan = {
+  id: string;
+  label: string;
+  amountDkk: number;
+  months: number;
+};
+
+export const MEMBERSHIP_PLANS: MembershipPlan[] = [
+  { id: "monthly", label: "1 month", amountDkk: 100, months: 1 },
+  { id: "biannual", label: "6 months", amountDkk: 600, months: 6 },
+  { id: "annual", label: "1 year", amountDkk: 1200, months: 12 },
+];
+
+export function getPlan(id: string): MembershipPlan | undefined {
+  return MEMBERSHIP_PLANS.find((plan) => plan.id === id);
+}
 
 export type MembershipStatus = "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "NONE";
 
@@ -22,11 +35,11 @@ export function getMembershipStatus(expiresAt: Date | null): MembershipStatus {
 }
 
 // Extend from current expiry if still active, otherwise from today.
-export function nextPeriodEnd(currentExpiry: Date | null): Date {
+export function nextPeriodEnd(currentExpiry: Date | null, months: number): Date {
   const now = new Date();
   const base =
     currentExpiry && currentExpiry > now ? new Date(currentExpiry) : now;
   const end = new Date(base);
-  end.setMonth(end.getMonth() + MEMBERSHIP_PERIOD_MONTHS);
+  end.setMonth(end.getMonth() + months);
   return end;
 }
