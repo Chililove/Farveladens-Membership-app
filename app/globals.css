@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+/* Class-based dark mode rather than prefers-color-scheme, so the toggle can
+   override the visitor's OS setting. The app ships dark by default: <html>
+   carries the "dark" class unless the visitor has chosen light. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+.dark {
+  --background: #0a0a0c;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +22,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }

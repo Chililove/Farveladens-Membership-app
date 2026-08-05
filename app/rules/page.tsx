@@ -25,12 +25,12 @@ export default async function RulesPage() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="text-3xl font-bold">Our rules</h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
         Please read and accept to continue.
       </p>
 
       {/* TODO: replace this placeholder with Farveladen's real rules. */}
-      <div className="mt-6 space-y-4 rounded-xl border border-gray-200 p-6 text-gray-700">
+      <div className="mt-6 space-y-4 rounded-xl border border-gray-200 bg-white p-6 text-gray-700 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
         <p>
           Welcome to Farveladen. By becoming a member you agree to treat the
           studio, the equipment, and each other with respect.
@@ -48,7 +48,7 @@ export default async function RulesPage() {
       <form action={accept} className="mt-8">
         <button
           type="submit"
-          className="rounded-full bg-black px-8 py-3 font-medium text-white transition hover:bg-gray-800"
+          className="rounded-full bg-violet-600 px-8 py-3 font-medium text-white transition hover:bg-violet-500"
         >
           I have read and accept the rules
         </button>
