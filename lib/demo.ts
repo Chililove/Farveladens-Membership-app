@@ -13,6 +13,14 @@ export const DEMO_ENABLED = process.env.DEMO_MODE !== "false";
 
 export type DemoRole = "MEMBER" | "ADMIN";
 
+// Demo and fake-member addresses, so reports can leave them out.
+const DEMO_EMAIL_SUFFIXES = ["@farveladen.demo", "@example.dk"];
+
+export function isDemoEmail(email: string): boolean {
+  const lower = email.toLowerCase();
+  return DEMO_EMAIL_SUFFIXES.some((suffix) => lower.endsWith(suffix));
+}
+
 function daysFromNow(days: number): Date {
   const date = new Date();
   date.setDate(date.getDate() + days);

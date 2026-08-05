@@ -82,4 +82,38 @@ export const membershipRepository = {
       data: { rulesAcceptedAt: new Date() },
     });
   },
+
+  // ---- Digest ----
+
+  // Still valid, but running out before `before`.
+  findMembersExpiringBefore(before: Date) {
+    return prisma.user.findMany({
+      where: { membershipExpiresAt: { gte: new Date(), lt: before } },
+      orderBy: { membershipExpiresAt: "asc" },
+    });
+  },
+
+  // Lapsed and not yet renewed.
+  findExpiredMembers() {
+    return prisma.user.findMany({
+      where: { membershipExpiresAt: { lt: new Date() } },
+      orderBy: { membershipExpiresAt: "desc" },
+    });
+  },
+
+  // Added by an admin but never paid a first subscription.
+  findNeverPaidMembers() {
+    return prisma.user.findMany({
+      where: { membershipExpiresAt: null },
+      orderBy: { email: "asc" },
+    });
+  },
+
+  // Every admin, used as the default digest recipient list.
+  findAdmins() {
+    return prisma.user.findMany({
+      where: { role: "ADMIN" },
+      orderBy: { email: "asc" },
+    });
+  },
 };
