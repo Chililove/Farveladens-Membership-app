@@ -1,4 +1,5 @@
 import { signIn } from "@/auth";
+import { DEMO_ENABLED } from "@/lib/demo";
 
 export default function LoginPage() {
   return (
@@ -32,6 +33,54 @@ export default function LoginPage() {
           Send me a login link
         </button>
       </form>
+
+      {DEMO_ENABLED && (
+        <section className="mt-12 rounded-xl border border-dashed border-gray-300 p-5 dark:border-gray-700">
+          <h2 className="font-semibold">Just looking around?</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Try the app without signing up. The demo data resets every time, so
+            feel free to click anything.
+          </p>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <form
+              action={async () => {
+                "use server";
+                await signIn("demo", {
+                  role: "MEMBER",
+                  redirectTo: "/dashboard",
+                });
+              }}
+              className="flex-1"
+            >
+              <button
+                type="submit"
+                className="w-full rounded-full border border-gray-900 px-5 py-3 text-sm font-medium transition hover:bg-gray-900 hover:text-white dark:border-gray-600 dark:hover:border-violet-500 dark:hover:bg-violet-500/10 dark:hover:text-violet-200"
+              >
+                Try as member
+              </button>
+            </form>
+
+            <form
+              action={async () => {
+                "use server";
+                await signIn("demo", {
+                  role: "ADMIN",
+                  redirectTo: "/admin",
+                });
+              }}
+              className="flex-1"
+            >
+              <button
+                type="submit"
+                className="w-full rounded-full border border-gray-900 px-5 py-3 text-sm font-medium transition hover:bg-gray-900 hover:text-white dark:border-gray-600 dark:hover:border-violet-500 dark:hover:bg-violet-500/10 dark:hover:text-violet-200"
+              >
+                Try as admin
+              </button>
+            </form>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
