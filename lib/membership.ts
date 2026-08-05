@@ -21,15 +21,21 @@ export function getPlan(id: string): MembershipPlan | undefined {
 
 export type MembershipStatus = "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "NONE";
 
+// How far ahead counts as "expiring soon". Shared with the admin digest so the
+// dashboard warning and the email agree on what's urgent.
+export const EXPIRING_SOON_DAYS = 14;
+
+export function expiringSoonCutoff(): Date {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() + EXPIRING_SOON_DAYS);
+  return cutoff;
+}
+
 export function getMembershipStatus(expiresAt: Date | null): MembershipStatus {
   if (!expiresAt) return "NONE";
   const now = new Date();
   if (expiresAt < now) return "EXPIRED";
-
-  // Expiring soon = within the next 14 days.
-  const soon = new Date();
-  soon.setDate(soon.getDate() + 14);
-  if (expiresAt < soon) return "EXPIRING_SOON";
+  if (expiresAt < expiringSoonCutoff()) return "EXPIRING_SOON";
 
   return "ACTIVE";
 }
