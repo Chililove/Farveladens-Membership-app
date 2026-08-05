@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth, signOut } from "@/auth";
@@ -54,6 +55,15 @@ export default async function DashboardPage() {
     <main className="mx-auto max-w-xl px-6 py-16">
       <h1 className="text-3xl font-bold">Your membership</h1>
       <p className="mt-1 text-sm text-gray-500">Signed in as {user.email}</p>
+
+      {user.role === "ADMIN" && (
+        <Link
+          href="/admin"
+          className="mt-2 inline-block text-sm text-blue-700 underline"
+        >
+          Go to admin →
+        </Link>
+      )}
 
       <div className="mt-8 rounded-xl border border-gray-200 p-5">
         {status === "ACTIVE" && (
