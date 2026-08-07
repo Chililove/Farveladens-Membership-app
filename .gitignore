@@ -42,3 +42,13 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# personal working notes and AI assistant instructions — never published
+AGENTS.md
+CLAUDE.md
+ROADMAP.md
+ROADMAP*.md
+NOTES.md
+TODO.md
+.claude/
+.cursor/
