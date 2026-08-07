@@ -34,8 +34,12 @@ export default async function AdminPage() {
   // Members can't see this page.
   if (session.user.role !== "ADMIN") redirect("/dashboard");
 
-  const pending = await membershipRepository.findPendingPayments();
-  const members = await membershipRepository.findAllMembers();
+  // A demo admin only ever sees demo data, never the real member list.
+  const actor = await membershipRepository.findUserById(session.user.id);
+  const scope = actor?.isDemo ?? false;
+
+  const pending = await membershipRepository.findPendingPayments(scope);
+  const members = await membershipRepository.findAllMembers(scope);
 
   async function confirmPayment(formData: FormData) {
     "use server";
@@ -56,8 +60,8 @@ export default async function AdminPage() {
     if (!existing) {
       // A demo visitor's additions are flagged so the next demo reset removes
       // them, rather than leaving invented names in the real roster.
-      const actor = await membershipRepository.findUserById(s.user.id);
-      await membershipRepository.createMember(email, actor?.isDemo ?? false);
+      const addedBy = await membershipRepository.findUserById(s.user.id);
+      await membershipRepository.createMember(email, addedBy?.isDemo ?? false);
     }
     revalidatePath("/admin");
   }

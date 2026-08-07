@@ -53,23 +53,19 @@ export async function collectDigest(): Promise<Digest> {
     membershipRepository.findMembersExpiringBefore(expiringSoonCutoff()),
     membershipRepository.findExpiredMembers(),
     membershipRepository.findNeverPaidMembers(),
-    membershipRepository.findPendingPayments(),
+    // false = real members only, never demo data.
+    membershipRepository.findPendingPayments(false),
   ]);
 
   const digest: Digest = {
-    // The member queries already exclude demo rows. Pending payments come from
-    // the same query the admin page uses, which must show demo data, so they
-    // get filtered here instead.
     expiringSoon,
     expired,
     neverPaid,
-    pending: pending
-      .filter((p) => !p.user.isDemo)
-      .map((p) => ({
-        email: p.user.email,
-        amountDkk: p.amountDkk,
-        createdAt: p.createdAt,
-      })),
+    pending: pending.map((p) => ({
+      email: p.user.email,
+      amountDkk: p.amountDkk,
+      createdAt: p.createdAt,
+    })),
     isEmpty: false,
   };
 

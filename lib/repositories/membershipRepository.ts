@@ -34,17 +34,23 @@ export const membershipRepository = {
   },
 
   // ---- Admin ----
+  // Both take the scope of the admin doing the looking. A demo admin sees only
+  // demo data, a real admin sees only real members. Without this a portfolio
+  // visitor clicking "Try as admin" would read the forening's member list.
 
-  findPendingPayments() {
+  findPendingPayments(isDemo: boolean) {
     return prisma.payment.findMany({
-      where: { status: "PENDING" },
+      where: { status: "PENDING", user: { isDemo } },
       include: { user: true },
       orderBy: { createdAt: "asc" },
     });
   },
 
-  findAllMembers() {
-    return prisma.user.findMany({ orderBy: { email: "asc" } });
+  findAllMembers(isDemo: boolean) {
+    return prisma.user.findMany({
+      where: { isDemo },
+      orderBy: { email: "asc" },
+    });
   },
 
   // Confirm a payment and extend the member's expiry together, in a single
