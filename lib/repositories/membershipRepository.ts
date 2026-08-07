@@ -70,9 +70,15 @@ export const membershipRepository = {
     return prisma.user.findUnique({ where: { email } });
   },
 
+  findUserById(id: string) {
+    return prisma.user.findUnique({ where: { id } });
+  },
+
   // Admin pre-creates a member by email; they log in later via magic link.
-  createMember(email: string) {
-    return prisma.user.create({ data: { email } });
+  // Members added from a demo session are flagged so the next demo reset
+  // removes them instead of leaving them in the real roster.
+  createMember(email: string, isDemo = false) {
+    return prisma.user.create({ data: { email, isDemo } });
   },
 
   // Record that a member accepted the rules (timestamp doubles as the audit log).
@@ -84,11 +90,15 @@ export const membershipRepository = {
   },
 
   // ---- Digest ----
+  // These all skip demo accounts: the board's summary is about real members.
 
   // Still valid, but running out before `before`.
   findMembersExpiringBefore(before: Date) {
     return prisma.user.findMany({
-      where: { membershipExpiresAt: { gte: new Date(), lt: before } },
+      where: {
+        isDemo: false,
+        membershipExpiresAt: { gte: new Date(), lt: before },
+      },
       orderBy: { membershipExpiresAt: "asc" },
     });
   },
@@ -96,7 +106,7 @@ export const membershipRepository = {
   // Lapsed and not yet renewed.
   findExpiredMembers() {
     return prisma.user.findMany({
-      where: { membershipExpiresAt: { lt: new Date() } },
+      where: { isDemo: false, membershipExpiresAt: { lt: new Date() } },
       orderBy: { membershipExpiresAt: "desc" },
     });
   },
@@ -104,7 +114,7 @@ export const membershipRepository = {
   // Added by an admin but never paid a first subscription.
   findNeverPaidMembers() {
     return prisma.user.findMany({
-      where: { membershipExpiresAt: null },
+      where: { isDemo: false, membershipExpiresAt: null },
       orderBy: { email: "asc" },
     });
   },
@@ -112,7 +122,7 @@ export const membershipRepository = {
   // Every admin, used as the default digest recipient list.
   findAdmins() {
     return prisma.user.findMany({
-      where: { role: "ADMIN" },
+      where: { isDemo: false, role: "ADMIN" },
       orderBy: { email: "asc" },
     });
   },

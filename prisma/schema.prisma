@@ -25,6 +25,9 @@ model User {
   role                Role      @default(MEMBER)
   membershipExpiresAt DateTime?
   rulesAcceptedAt     DateTime? // when the member accepted the rules (null = not yet)
+  // Demo accounts and anything a demo visitor creates. Wiped on each demo
+  // login and excluded from the board's digest.
+  isDemo              Boolean   @default(false)
   payments            Payment[]
 
   createdAt DateTime @default(now())

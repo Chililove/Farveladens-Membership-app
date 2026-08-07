@@ -4,7 +4,6 @@
 
 import { membershipRepository } from "./repositories/membershipRepository";
 import { expiringSoonCutoff, EXPIRING_SOON_DAYS } from "./membership";
-import { isDemoEmail } from "./demo";
 
 type MemberRow = { email: string; membershipExpiresAt: Date | null };
 type PendingRow = { email: string; amountDkk: number; createdAt: Date };
@@ -57,20 +56,20 @@ export async function collectDigest(): Promise<Digest> {
     membershipRepository.findPendingPayments(),
   ]);
 
-  const real = <T extends { email: string }>(rows: T[]) =>
-    rows.filter((row) => !isDemoEmail(row.email));
-
   const digest: Digest = {
-    expiringSoon: real(expiringSoon),
-    expired: real(expired),
-    neverPaid: real(neverPaid),
-    pending: real(
-      pending.map((p) => ({
+    // The member queries already exclude demo rows. Pending payments come from
+    // the same query the admin page uses, which must show demo data, so they
+    // get filtered here instead.
+    expiringSoon,
+    expired,
+    neverPaid,
+    pending: pending
+      .filter((p) => !p.user.isDemo)
+      .map((p) => ({
         email: p.user.email,
         amountDkk: p.amountDkk,
         createdAt: p.createdAt,
-      }))
-    ),
+      })),
     isEmpty: false,
   };
 
@@ -95,7 +94,7 @@ export async function digestRecipients(): Promise<string[]> {
   if (override) return override.split(",").map((email) => email.trim());
 
   const admins = await membershipRepository.findAdmins();
-  return admins.map((admin) => admin.email).filter((email) => !isDemoEmail(email));
+  return admins.map((admin) => admin.email);
 }
 
 function section(title: string, rows: string[]): string {

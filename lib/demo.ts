@@ -13,14 +13,6 @@ export const DEMO_ENABLED = process.env.DEMO_MODE !== "false";
 
 export type DemoRole = "MEMBER" | "ADMIN";
 
-// Demo and fake-member addresses, so reports can leave them out.
-const DEMO_EMAIL_SUFFIXES = ["@farveladen.demo", "@example.dk"];
-
-export function isDemoEmail(email: string): boolean {
-  const lower = email.toLowerCase();
-  return DEMO_EMAIL_SUFFIXES.some((suffix) => lower.endsWith(suffix));
-}
-
 function daysFromNow(days: number): Date {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -50,12 +42,21 @@ const FAKE_PENDING = [
 /**
  * Restore the demo dataset to its starting state.
  *
- * Wipes every demo user's payments, resets the shared demo member so a visitor
- * sees the rules gate and an empty membership, and recreates the pending
- * payments the demo admin is meant to confirm. Only touches demo accounts —
- * real members are never affected.
+ * Deletes every demo-flagged user first — including anyone a visitor invented
+ * through the admin panel's "Add a member" form — then recreates the fixed
+ * cast. Payments cascade with their user, so the admin queue refills too.
+ * Rows without isDemo are real members and are never touched.
  */
 export async function resetDemoData() {
+  // Visitors can create users via /admin. Without this they would accumulate
+  // in the roster forever and show up in the board's digest.
+  await prisma.user.deleteMany({
+    where: {
+      isDemo: true,
+      email: { notIn: [DEMO_MEMBER_EMAIL, DEMO_ADMIN_EMAIL] },
+    },
+  });
+
   const demoMember = await prisma.user.upsert({
     where: { email: DEMO_MEMBER_EMAIL },
     update: {
@@ -70,6 +71,7 @@ export async function resetDemoData() {
       name: "Demo Member",
       role: "MEMBER",
       emailVerified: new Date(),
+      isDemo: true,
     },
   });
 
@@ -82,6 +84,7 @@ export async function resetDemoData() {
       role: "ADMIN",
       emailVerified: new Date(),
       rulesAcceptedAt: new Date(),
+      isDemo: true,
     },
   });
 
@@ -103,6 +106,7 @@ export async function resetDemoData() {
           emailVerified: new Date(),
           membershipExpiresAt: expiresAt,
           rulesAcceptedAt: member.rulesAccepted ? new Date() : null,
+          isDemo: true,
         },
       })
     );

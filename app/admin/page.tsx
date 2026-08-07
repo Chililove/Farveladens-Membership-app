@@ -53,7 +53,12 @@ export default async function AdminPage() {
     if (!email) return;
     // Skip if a member with this email already exists.
     const existing = await membershipRepository.findUserByEmail(email);
-    if (!existing) await membershipRepository.createMember(email);
+    if (!existing) {
+      // A demo visitor's additions are flagged so the next demo reset removes
+      // them, rather than leaving invented names in the real roster.
+      const actor = await membershipRepository.findUserById(s.user.id);
+      await membershipRepository.createMember(email, actor?.isDemo ?? false);
+    }
     revalidatePath("/admin");
   }
 
