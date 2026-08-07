@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Farveladen Membership
 
-## Getting Started
+Membership and dues tracking for **Rytmisk Farvelade Forening**, a volunteer-run
+music studio in Denmark.
 
-First, run the development server:
+**[Live demo →](https://farveladens-membership-app.vercel.app)** — no sign-up
+needed, there are demo accounts on the login page.
+
+---
+
+## The problem
+
+The forening has around 45 members who pay dues of 100 kr a month, 600 kr for
+six months, or 1200 kr a year. Members transfer the money to the club account
+themselves. There is no card payment or automatic collection.
+
+Tracking who had paid meant a spreadsheet, a board member cross-referencing bank
+statements, and a lot of chasing people who had quietly lapsed months ago. The
+work fell on whoever had the energy for it, and it was easy to forget entirely
+between meetings.
+
+## What this does
+
+- A member picks a plan and registers that they are going to transfer the money.
+- The app shows them the amount and where to send it.
+- A board member confirms the transfer arrived, which extends the membership.
+- Everyone can see their own status: active, expiring soon, expired.
+- The board gets an email every second week listing what needs attention.
+
+## Design decisions
+
+**No payment provider integration.** The obvious next step is MobilePay's
+Recurring API, but the fees decide it: at ~285 transactions a year, MobilePay
+costs about 820 kr annually versus roughly 1300 kr for Stripe, plus a one-off
+setup fee. The board hasn't chosen yet, so the app deliberately stops at
+recording and confirming manual transfers rather than guessing. The payment step
+is isolated behind a repository so swapping it out later doesn't touch the UI.
+
+**Confirming a payment is a transaction.** Marking a payment confirmed and
+extending the member's expiry happen together in `prisma.$transaction`, so a
+crash can't leave a member charged but not extended.
+
+**Membership is invite-only.** Auth.js will happily create an account for any
+address typed into a login form. A `signIn` callback rejects emails the board
+hasn't already added, so the admin "Add a member" form is the real gate.
+
+**Plans are resolved server-side.** The plan id travels in the form, but the
+amount and duration are looked up on the server, so a tampered form can't buy a
+year for the price of a month.
+
+**Fortnightly, not weekly.** Cron has no fortnightly expression, so the job runs
+every Monday and only sends on even ISO weeks. Vercel's Hobby plan caps cron at
+once per day, which this stays well within.
+
+**Demo mode is isolated.** Demo accounts are flagged in the database rather than
+matched by email pattern, so anything a visitor creates is cleaned up on the
+next demo login and never reaches the board's digest.
+
+## Built with
+
+Next.js (App Router, server actions) · TypeScript · Prisma · PostgreSQL ·
+Auth.js with magic links · Tailwind · Resend · deployed on Vercel
+
+## Running locally
 
 ```bash
+git clone https://github.com/Chililove/Farveladens-Membership-app
+cd Farveladens-Membership-app
+npm install
+cp .env.example .env      # then fill in the values
+npx prisma migrate deploy
+npm run db:seed-demo      # optional, creates demo data
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.example` documents every variable. You'll need a PostgreSQL database and
+a [Resend](https://resend.com) API key for the login emails.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> Note: `npm run build` runs `prisma migrate deploy` first, so use
+> `npx next build` if you only want to check that the app compiles.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Status and known limits
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Login emails only reach one address.** Resend's test mode delivers only to
+  the account owner until a sending domain is verified, so real members can't
+  receive magic links yet. This is why the demo accounts exist.
+- **Expiry is informational.** Nothing is revoked when a membership lapses —
+  studio access is controlled by a physical key, not this app.
+- **Member reminders aren't built.** The board digest is; individual "your
+  membership expires soon" emails are blocked on the same domain question.
+- The club rules on `/rules` are placeholder text.
