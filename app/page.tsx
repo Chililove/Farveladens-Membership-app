@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 
-// The app has no public landing page yet - send visitors straight to their
-// dashboard. /dashboard redirects on to /login when nobody is signed in.
+// The login page doubles as the front page: it explains what the app is and
+// offers the demo. Sending signed-in visitors straight to their dashboard
+// would skip that, which is the first thing most people need to see.
 export default function Home() {
-  redirect("/dashboard");
+  redirect("/login");
 }

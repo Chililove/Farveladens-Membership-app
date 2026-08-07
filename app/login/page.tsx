@@ -1,7 +1,10 @@
-import { signIn } from "@/auth";
+import Link from "next/link";
+import { auth, signIn, signOut } from "@/auth";
 import { DEMO_ENABLED } from "@/lib/demo";
 
 const REPO_URL = "https://github.com/Chililove/Farveladens-Membership-app";
+
+export const dynamic = "force-dynamic";
 
 export default async function LoginPage({
   searchParams,
@@ -9,9 +12,39 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
+  const session = await auth();
 
   return (
     <main className="mx-auto max-w-xl px-6 py-20">
+      {/* Someone arriving here with a session still gets the explanation and
+          the demo, but with a way back to where they were. */}
+      {session && (
+        <div className="mb-8 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-gray-200 px-4 py-3 text-sm dark:border-gray-800">
+          <span className="text-gray-600 dark:text-gray-400">
+            Signed in as {session.user.email}
+          </span>
+          <Link
+            href="/dashboard"
+            className="text-violet-700 underline underline-offset-2 hover:text-violet-600 dark:text-violet-400 dark:hover:text-violet-300"
+          >
+            Continue
+          </Link>
+          <form
+            action={async () => {
+              "use server";
+              await signOut({ redirectTo: "/login" });
+            }}
+          >
+            <button
+              type="submit"
+              className="text-gray-500 underline underline-offset-2 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+            >
+              Sign out
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* What this is - most visitors arrive with no context. */}
       <section>
         <h1 className="text-3xl font-bold">Farveladen Membership</h1>
