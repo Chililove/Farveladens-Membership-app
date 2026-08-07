@@ -34,8 +34,8 @@ export default async function LoginPage({
         <section className="mt-10 rounded-xl border border-dashed border-gray-300 p-5 dark:border-gray-700">
           <h2 className="font-semibold">Try it - no sign-up needed</h2>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Two demo accounts with sample data. Everything resets each time you
-            start, so click anything you like.
+            Two demo accounts with sample data. Starting as a member resets
+            everything, so click anything you like.
           </p>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -77,8 +77,8 @@ export default async function LoginPage({
           </div>
 
           <p className="mt-3 text-xs text-gray-500 dark:text-gray-500">
-            As a member you&apos;ll start at the club rules, then choose a plan.
-            As an admin you&apos;ll see transfers waiting to be confirmed.
+            To see the whole flow: register a payment as the member, then switch
+            to admin and confirm it.
           </p>
         </section>
       )}
