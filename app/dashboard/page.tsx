@@ -70,13 +70,13 @@ export default async function DashboardPage() {
       <div className="mt-8 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900/40">
         {status === "ACTIVE" && (
           <p className="text-green-700 dark:text-green-400">
-            ✅ Active — valid until{" "}
+            ✅ Active - valid until{" "}
             <strong>{formatDate(user.membershipExpiresAt!)}</strong>
           </p>
         )}
         {status === "EXPIRING_SOON" && (
           <p className="text-amber-700 dark:text-amber-400">
-            ⚠️ Expiring soon — valid until{" "}
+            ⚠️ Expiring soon - valid until{" "}
             <strong>{formatDate(user.membershipExpiresAt!)}</strong>
           </p>
         )}
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
 
       {pending ? (
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-500/30 dark:bg-amber-500/10">
-          <h2 className="font-semibold">Payment registered — please transfer</h2>
+          <h2 className="font-semibold">Payment registered - please transfer</h2>
           <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
             Send <strong>{pending.amountDkk} kr</strong> via MobilePay to{" "}
             <strong>{MOBILEPAY_NUMBER}</strong>, with your email as the message.
@@ -110,7 +110,7 @@ export default async function DashboardPage() {
       ) : (
         <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900/40">
           <h2 className="font-semibold">
-            {status === "NONE" ? "Choose a plan to join" : "Renew — choose a plan"}
+            {status === "NONE" ? "Choose a plan to join" : "Renew - choose a plan"}
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Pick a plan, then transfer the amount via MobilePay. An admin

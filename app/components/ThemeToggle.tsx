@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-// The theme lives on <html> as a class, not in React state — the inline script
+// The theme lives on <html> as a class, not in React state - the inline script
 // in layout.tsx sets it before first paint. useSyncExternalStore lets the
 // button read that external value without a setState-in-effect round trip.
 
@@ -33,7 +33,7 @@ export default function ThemeToggle() {
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {
-      // Private browsing can block storage — the toggle still works for this
+      // Private browsing can block storage - the toggle still works for this
       // page view, it just won't be remembered.
     }
     listeners.forEach((onChange) => onChange());

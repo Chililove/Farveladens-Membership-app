@@ -42,8 +42,8 @@ const FAKE_PENDING = [
 /**
  * Restore the demo dataset to its starting state.
  *
- * Deletes every demo-flagged user first — including anyone a visitor invented
- * through the admin panel's "Add a member" form — then recreates the fixed
+ * Deletes every demo-flagged user first - including anyone a visitor invented
+ * through the admin panel's "Add a member" form - then recreates the fixed
  * cast. Payments cascade with their user, so the admin queue refills too.
  * Rows without isDemo are real members and are never touched.
  */

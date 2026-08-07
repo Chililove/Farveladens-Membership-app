@@ -12,12 +12,12 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto max-w-xl px-6 py-20">
-      {/* What this is — most visitors arrive with no context. */}
+      {/* What this is - most visitors arrive with no context. */}
       <section>
         <h1 className="text-3xl font-bold">Farveladen Membership</h1>
         <p className="mt-4 leading-relaxed text-gray-700 dark:text-gray-300">
           Rytmisk Farvelade Forening is a volunteer-run music studio. Members
-          pay their dues by transferring the money to the club&apos;s account —
+          pay their dues by transferring the money to the club&apos;s account -
           there&apos;s no card payment or automatic collection yet, because the
           board hasn&apos;t decided which provider is worth the fees.
         </p>
@@ -32,7 +32,7 @@ export default async function LoginPage({
 
       {DEMO_ENABLED && (
         <section className="mt-10 rounded-xl border border-dashed border-gray-300 p-5 dark:border-gray-700">
-          <h2 className="font-semibold">Try it — no sign-up needed</h2>
+          <h2 className="font-semibold">Try it - no sign-up needed</h2>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Two demo accounts with sample data. Everything resets each time you
             start, so click anything you like.

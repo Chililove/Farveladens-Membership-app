@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 function formatDate(date: Date | null) {
   return date
     ? new Intl.DateTimeFormat("da-DK", { dateStyle: "medium" }).format(date)
-    : "—";
+    : "-";
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -151,7 +151,7 @@ export default async function AdminPage() {
                     {STATUS_LABEL[status]}
                   </td>
                   <td className="py-2">{formatDate(m.membershipExpiresAt)}</td>
-                  <td className="py-2">{m.rulesAcceptedAt ? "✅" : "—"}</td>
+                  <td className="py-2">{m.rulesAcceptedAt ? "✅" : "-"}</td>
                 </tr>
               );
             })}

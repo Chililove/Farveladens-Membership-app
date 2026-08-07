@@ -1,6 +1,6 @@
 // Weekly summary emailed to the board: who is about to lapse, who already has,
 // and which transfers are still waiting to be confirmed. Nothing here changes
-// data — it only reports.
+// data - it only reports.
 
 import { membershipRepository } from "./repositories/membershipRepository";
 import { expiringSoonCutoff, EXPIRING_SOON_DAYS } from "./membership";
@@ -18,7 +18,7 @@ export type Digest = {
 
 /**
  * ISO week number. Cron has no "every second week", so the job runs weekly and
- * only sends on even ISO weeks — giving an exact 14-day gap while staying on a
+ * only sends on even ISO weeks - giving an exact 14-day gap while staying on a
  * Monday morning. Swap to `0 7 1,15 * *` in vercel.json if you'd rather have it
  * twice a month on fixed dates.
  */
@@ -39,7 +39,7 @@ export function isDigestWeek(date = new Date()): boolean {
 function formatDate(date: Date | null): string {
   return date
     ? new Intl.DateTimeFormat("da-DK", { dateStyle: "medium" }).format(date)
-    : "—";
+    : "-";
 }
 
 function daysUntil(date: Date): number {
@@ -85,7 +85,7 @@ export async function collectDigest(): Promise<Digest> {
  * Who receives the digest.
  *
  * Defaults to every admin in the database, which is where this should end up
- * once the forening runs it themselves. ADMIN_DIGEST_EMAIL overrides that —
+ * once the forening runs it themselves. ADMIN_DIGEST_EMAIL overrides that -
  * needed while Resend is in test mode and can only deliver to the account
  * owner's address.
  */
@@ -108,7 +108,7 @@ function section(title: string, rows: string[]): string {
 
 export function renderDigestHtml(digest: Digest, appUrl: string): string {
   const body = digest.isEmpty
-    ? `<p style="line-height:1.6;">Nothing needs attention this week — no lapsed
+    ? `<p style="line-height:1.6;">Nothing needs attention this week - no lapsed
        members, nobody expiring within ${EXPIRING_SOON_DAYS} days, and no
        transfers waiting to be confirmed.</p>`
     : [
@@ -116,21 +116,21 @@ export function renderDigestHtml(digest: Digest, appUrl: string): string {
           `Waiting for confirmation (${digest.pending.length})`,
           digest.pending.map(
             (p) =>
-              `<strong>${p.email}</strong> — ${p.amountDkk} kr, registered ${formatDate(p.createdAt)}`
+              `<strong>${p.email}</strong> - ${p.amountDkk} kr, registered ${formatDate(p.createdAt)}`
           )
         ),
         section(
           `Expiring within ${EXPIRING_SOON_DAYS} days (${digest.expiringSoon.length})`,
           digest.expiringSoon.map(
             (m) =>
-              `<strong>${m.email}</strong> — expires ${formatDate(m.membershipExpiresAt)} (${daysUntil(m.membershipExpiresAt!)} days)`
+              `<strong>${m.email}</strong> - expires ${formatDate(m.membershipExpiresAt)} (${daysUntil(m.membershipExpiresAt!)} days)`
           )
         ),
         section(
           `Already expired (${digest.expired.length})`,
           digest.expired.map(
             (m) =>
-              `<strong>${m.email}</strong> — expired ${formatDate(m.membershipExpiresAt)}`
+              `<strong>${m.email}</strong> - expired ${formatDate(m.membershipExpiresAt)}`
           )
         ),
         section(
@@ -142,7 +142,7 @@ export function renderDigestHtml(digest: Digest, appUrl: string): string {
   return `<!doctype html>
 <html>
   <body style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#171717;max-width:600px;margin:0 auto;padding:24px;">
-    <h1 style="font-size:20px;margin:0 0 4px;">Farveladen — weekly membership summary</h1>
+    <h1 style="font-size:20px;margin:0 0 4px;">Farveladen - weekly membership summary</h1>
     <p style="color:#6b7280;margin:0 0 16px;font-size:14px;">
       ${formatDate(new Date())}
     </p>
@@ -155,7 +155,7 @@ export function renderDigestHtml(digest: Digest, appUrl: string): string {
 }
 
 export function digestSubject(digest: Digest): string {
-  if (digest.isEmpty) return "Farveladen — nothing to action this week";
+  if (digest.isEmpty) return "Farveladen - nothing to action this week";
 
   const parts: string[] = [];
   if (digest.pending.length) parts.push(`${digest.pending.length} to confirm`);
@@ -163,5 +163,5 @@ export function digestSubject(digest: Digest): string {
     parts.push(`${digest.expiringSoon.length} expiring`);
   if (digest.expired.length) parts.push(`${digest.expired.length} expired`);
 
-  return `Farveladen — ${parts.join(", ")}`;
+  return `Farveladen - ${parts.join(", ")}`;
 }

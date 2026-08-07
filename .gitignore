@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — real secrets stay local, the template is committed
+# env files - real secrets stay local, the template is committed
 .env*
 !.env.example
 
@@ -43,7 +43,7 @@ next-env.d.ts
 
 /app/generated/prisma
 
-# personal working notes and AI assistant instructions — never published
+# personal working notes and AI assistant instructions - never published
 AGENTS.md
 CLAUDE.md
 ROADMAP.md

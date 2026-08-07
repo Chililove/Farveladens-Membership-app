@@ -1,7 +1,7 @@
 // Create (or reset) the demo accounts and fake member data.
 // Run: npx tsx scripts/seed-demo.ts
 //
-// Not required for the app to work — every demo login resets the data itself.
+// Not required for the app to work - every demo login resets the data itself.
 // Useful for populating the database up front so the admin panel isn't empty
 // the first time someone opens it.
 

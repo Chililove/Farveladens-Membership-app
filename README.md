@@ -3,7 +3,7 @@
 Membership and dues tracking for **Rytmisk Farvelade Forening**, a volunteer-run
 music studio in Denmark.
 
-**[Live demo →](https://farveladens-membership-app.vercel.app)** — no sign-up
+**[Live demo →](https://farveladens-membership-app.vercel.app)** - no sign-up
 needed, there are demo accounts on the login page.
 
 ---
@@ -84,7 +84,7 @@ a [Resend](https://resend.com) API key for the login emails.
 - **Login emails only reach one address.** Resend's test mode delivers only to
   the account owner until a sending domain is verified, so real members can't
   receive magic links yet. This is why the demo accounts exist.
-- **Expiry is informational.** Nothing is revoked when a membership lapses —
+- **Expiry is informational.** Nothing is revoked when a membership lapses -
   studio access is controlled by a physical key, not this app.
 - **Member reminders aren't built.** The board digest is; individual "your
   membership expires soon" emails are blocked on the same domain question.

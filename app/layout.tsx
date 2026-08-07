@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Farveladen — Membership",
+  title: "Farveladen - Membership",
   description:
     "Membership and payment tracking for Rytmisk Farvelade Forening.",
 };

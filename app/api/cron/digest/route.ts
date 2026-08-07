@@ -5,7 +5,7 @@
 //   curl -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/digest
 //
 // TODO: member-facing reminders ("your membership expires in 14 days") belong
-// here too, but they can't be sent until a domain is verified in Resend —
+// here too, but they can't be sent until a domain is verified in Resend -
 // test mode only delivers to the account owner's own address.
 
 import { NextResponse } from "next/server";
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
   if (!force && !isDigestWeek()) {
     return NextResponse.json({
       sent: false,
-      reason: `Week ${isoWeek()} is an off week — digest runs every second week`,
+      reason: `Week ${isoWeek()} is an off week - digest runs every second week`,
     });
   }
 
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 
   if (recipients.length === 0) {
     return NextResponse.json(
-      { sent: false, reason: "No recipients — set ADMIN_DIGEST_EMAIL or add an admin" },
+      { sent: false, reason: "No recipients - set ADMIN_DIGEST_EMAIL or add an admin" },
       { status: 200 }
     );
   }
