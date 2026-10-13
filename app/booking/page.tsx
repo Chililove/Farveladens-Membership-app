@@ -728,7 +728,7 @@ export default async function BookingPage({
               return (
                 <li
                   key={day}
-                  className={`px-4 py-3 ${isPast ? "opacity-50" : ""} ${
+                  className={`px-5 py-5 ${isPast ? "opacity-50" : ""} ${
                     day === todayKey ? "bg-violet-50/60 dark:bg-violet-500/5" : ""
                   }`}
                 >
@@ -750,7 +750,7 @@ export default async function BookingPage({
 
                   {/* 24-hour bar, so free gaps are visible at a glance */}
                   <div
-                    className="relative mt-2 h-2 rounded-full bg-gray-100 dark:bg-gray-800"
+                    className="relative mt-3 h-2 rounded-full bg-gray-100 dark:bg-gray-800"
                     aria-hidden
                   >
                     {dayBookings.map((b) => {
@@ -775,7 +775,7 @@ export default async function BookingPage({
                   </div>
 
                   {dayBookings.length > 0 && (
-                    <ul className="mt-2 space-y-1">
+                    <ul className="mt-3 space-y-1.5">
                       {dayBookings.map((b) => {
                         const mineHere = b.userId === user.id;
                         const canCancel =
