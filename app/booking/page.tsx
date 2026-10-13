@@ -13,6 +13,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { membershipRepository } from "@/lib/repositories/membershipRepository";
 import { needsOnboarding, onboardingUrl } from "@/lib/onboarding";
+import { getI18n } from "@/lib/i18n/server";
+import { localeOf } from "@/lib/i18n/config";
 import { bookingRepository } from "@/lib/repositories/bookingRepository";
 import {
   ROOMS,
@@ -36,26 +38,12 @@ import {
   monthOf,
   parseRoom,
   parseTime,
-  roomLabel,
   startOfWeek,
   timeOptions,
   today,
 } from "@/lib/booking";
 
 export const dynamic = "force-dynamic";
-
-const ERRORS: Record<string, string> = {
-  inactive:
-    "Your membership isn't active, so you can't book right now. Renew it on your dashboard.",
-  invalid: "Something was off with that booking. Check the date and times.",
-  order: "The end time has to be after the start time.",
-  past: "That time has already passed.",
-  taken:
-    "Someone has already booked part of that time. Have a look at the calendar and pick another slot.",
-  "not-allowed": "You can only cancel your own bookings.",
-  gone: "That booking doesn't exist any more.",
-  started: "That booking has already started, so it can't be changed.",
-};
 
 // How many bookings a month cell lists before collapsing into "+N more".
 const MONTH_CELL_LIMIT = 3;
@@ -273,23 +261,25 @@ function BookingActions({
   bookingId,
   state,
   canEdit,
+  labels,
 }: {
   bookingId: string;
   state: CalendarState;
   canEdit: boolean;
+  labels: { edit: string; cancel: string };
 }) {
   return (
     <span className="flex shrink-0 items-center gap-3">
       {canEdit && (
         <Link href={`${calendarUrl(state, { edit: bookingId })}#book`} className={editLinkClass}>
-          Edit
+          {labels.edit}
         </Link>
       )}
       <form action={cancelBooking}>
         <input type="hidden" name="bookingId" value={bookingId} />
         <ReturnFields state={state} />
         <button type="submit" className={cancelButtonClass}>
-          Cancel
+          {labels.cancel}
         </button>
       </form>
     </span>
@@ -343,8 +333,13 @@ export default async function BookingPage({
     anchor: view === "month" ? month : monthOf(week),
   };
 
+  const { lang, t } = await getI18n();
+  const tb = t.booking;
+  const locale = localeOf(lang);
+  const actionLabels = { edit: tb.edit, cancel: tb.cancel };
+
   const errorKey = typeof params.error === "string" ? params.error : undefined;
-  const error = errorKey ? ERRORS[errorKey] : undefined;
+  const error = errorKey ? tb.errors[errorKey] : undefined;
 
   const bookable = canBook(user);
   // Demo visitors can book without paying; say so, so it isn't misleading.
@@ -404,15 +399,15 @@ export default async function BookingPage({
         href="/dashboard"
         className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
       >
-        ← Your membership
+        {tb.back}
       </Link>
-      <h1 className="mt-4 text-3xl font-bold">Book the studio or stage</h1>
+      <h1 className="mt-4 text-3xl font-bold">{tb.title}</h1>
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Signed in as {user.email}
+        {t.common.signedInAs(user.email)}
       </p>
 
       {/* Room tabs */}
-      <nav className="mt-8 flex gap-2" aria-label="Room">
+      <nav className="mt-8 flex gap-2" aria-label={tb.roomNav}>
         {ROOMS.map((r) => (
           <Link
             key={r.id}
@@ -425,7 +420,7 @@ export default async function BookingPage({
                 : "rounded-full border border-gray-300 px-5 py-2 text-sm font-medium transition hover:border-violet-600 dark:border-gray-700 dark:hover:border-violet-500"
             }
           >
-            {r.label}
+            {tb.rooms[r.id]}
           </Link>
         ))}
       </nav>
@@ -437,17 +432,17 @@ export default async function BookingPage({
       )}
       {params.booked === "1" && (
         <p className="mt-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300">
-          You&apos;re booked. It&apos;s on the calendar below.
+          {tb.booked}
         </p>
       )}
       {params.updated === "1" && (
         <p className="mt-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300">
-          Booking updated.
+          {tb.updated}
         </p>
       )}
       {params.cancelled === "1" && (
         <p className="mt-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
-          Booking cancelled.
+          {tb.cancelled}
         </p>
       )}
 
@@ -464,14 +459,13 @@ export default async function BookingPage({
           <h2 className="font-semibold">
             {editing
               ? editing.userId === user.id
-                ? "Edit your booking"
-                : `Edit ${displayName(editing.user)}'s booking`
-              : `Book the ${roomLabel(room).toLowerCase()}`}
+                ? tb.editYours
+                : tb.editOthers(displayName(editing.user))
+              : tb.bookTitle[room]}
           </h2>
           {demoBooking && !editing && (
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Demo: you can book without an active membership. Real members
-              need one.
+              {tb.demoNote}
             </p>
           )}
           <form
@@ -485,7 +479,7 @@ export default async function BookingPage({
               <>
                 <input type="hidden" name="bookingId" value={editing.id} />
                 <label className="flex flex-col gap-1 text-sm sm:col-span-3">
-                  <span className="text-gray-600 dark:text-gray-400">Room</span>
+                  <span className="text-gray-600 dark:text-gray-400">{tb.roomField}</span>
                   <select
                     name="room"
                     defaultValue={form.room}
@@ -493,7 +487,7 @@ export default async function BookingPage({
                   >
                     {ROOMS.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.label}
+                        {tb.rooms[r.id]}
                       </option>
                     ))}
                   </select>
@@ -503,7 +497,7 @@ export default async function BookingPage({
               <input type="hidden" name="room" value={room} />
             )}
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Date</span>
+              <span className="text-gray-600 dark:text-gray-400">{tb.date}</span>
               <input
                 type="date"
                 name="day"
@@ -514,7 +508,7 @@ export default async function BookingPage({
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-gray-600 dark:text-gray-400">From</span>
+              <span className="text-gray-600 dark:text-gray-400">{tb.from}</span>
               <select
                 name="start"
                 defaultValue={form.start}
@@ -526,7 +520,7 @@ export default async function BookingPage({
               </select>
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-gray-600 dark:text-gray-400">To</span>
+              <span className="text-gray-600 dark:text-gray-400">{tb.to}</span>
               <select
                 name="end"
                 defaultValue={form.end}
@@ -539,14 +533,14 @@ export default async function BookingPage({
             </label>
             <label className="flex flex-col gap-1 text-sm sm:col-span-3">
               <span className="text-gray-600 dark:text-gray-400">
-                What for? <span className="text-gray-400">(optional)</span>
+                {tb.whatFor} <span className="text-gray-400">{tb.optional}</span>
               </span>
               <input
                 type="text"
                 name="note"
                 maxLength={NOTE_MAX_LENGTH}
                 defaultValue={form.note}
-                placeholder="e.g. band rehearsal, recording vocals"
+                placeholder={tb.notePlaceholder}
                 className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 outline-none focus:border-violet-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder-gray-500"
               />
             </label>
@@ -555,14 +549,14 @@ export default async function BookingPage({
                 type="submit"
                 className="rounded-full bg-violet-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500"
               >
-                {editing ? "Save changes" : `Book ${roomLabel(room).toLowerCase()}`}
+                {editing ? tb.saveChanges : tb.bookButton[room]}
               </button>
               {editing && (
                 <Link
                   href={calendarUrl(state)}
                   className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                 >
-                  Stop editing
+                  {tb.stopEditing}
                 </Link>
               )}
             </div>
@@ -571,15 +565,14 @@ export default async function BookingPage({
       ) : (
         <section className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm dark:border-amber-500/30 dark:bg-amber-500/10">
           <p>
-            Booking is for active members. You can see the calendar, but to
-            book time{" "}
+            {tb.inactive[0]}{" "}
             <Link
               href="/dashboard"
               className="font-medium underline underline-offset-2"
             >
-              renew your membership
+              {tb.inactive[1]}
             </Link>{" "}
-            first.
+            {tb.inactive[2]}
           </p>
         </section>
       )}
@@ -589,18 +582,18 @@ export default async function BookingPage({
           is instead of jumping back to the top of the page. */}
       <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">
-          {roomLabel(room)} ·{" "}
-          {view === "month" ? formatMonth(month) : `week ${isoWeekNumber(week)}`}
+          {tb.rooms[room]} ·{" "}
+          {view === "month" ? formatMonth(month, locale) : tb.week(isoWeekNumber(week))}
         </h2>
         <div
           className="inline-flex rounded-full border border-gray-300 p-0.5 text-sm dark:border-gray-700"
           role="group"
-          aria-label="Calendar view"
+          aria-label={tb.calendarView}
         >
           {(
             [
-              ["week", "Week", weekTarget],
-              ["month", "Month", monthTarget],
+              ["week", tb.weekView, weekTarget],
+              ["month", tb.monthView, monthTarget],
             ] as const
           ).map(([id, label, target]) => (
             <Link
@@ -623,29 +616,29 @@ export default async function BookingPage({
         {view === "month" ? (
           <>
             <Link href={calendarUrl({ ...state, anchor: addMonths(month, -1) })} className={linkClass} scroll={false}>
-              ← Previous
+              {tb.previous}
             </Link>
             {month !== monthOf(todayKey) && (
               <Link href={calendarUrl({ ...state, anchor: monthOf(todayKey) })} className={linkClass} scroll={false}>
-                This month
+                {tb.thisMonth}
               </Link>
             )}
             <Link href={calendarUrl({ ...state, anchor: addMonths(month, 1) })} className={linkClass} scroll={false}>
-              Next →
+              {tb.next}
             </Link>
           </>
         ) : (
           <>
             <Link href={calendarUrl({ ...state, anchor: addDays(week, -7) })} className={linkClass} scroll={false}>
-              ← Previous
+              {tb.previous}
             </Link>
             {week !== startOfWeek(todayKey) && (
               <Link href={calendarUrl({ ...state, anchor: startOfWeek(todayKey) })} className={linkClass} scroll={false}>
-                This week
+                {tb.thisWeek}
               </Link>
             )}
             <Link href={calendarUrl({ ...state, anchor: addDays(week, 7) })} className={linkClass} scroll={false}>
-              Next →
+              {tb.next}
             </Link>
           </>
         )}
@@ -656,7 +649,7 @@ export default async function BookingPage({
            week, where bookings can be cancelled. */
         <div className="mt-4">
           <div className="grid grid-cols-7 gap-px text-center text-xs font-medium text-gray-500 dark:text-gray-400">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+            {tb.weekdays.map((d) => (
               <div key={d} className="pb-2">
                 {d}
               </div>
@@ -675,10 +668,10 @@ export default async function BookingPage({
                   <Link
                     href={calendarUrl({ room, view: "week", anchor: startOfWeek(day) })}
                     scroll={false}
-                    aria-label={`${formatDay(day)}: ${
+                    aria-label={`${formatDay(day, "long", locale)}: ${
                       dayBookings.length === 0
-                        ? "free all day"
-                        : `${dayBookings.length} booking${dayBookings.length === 1 ? "" : "s"}`
+                        ? tb.freeAllDayLower
+                        : tb.bookingCount(dayBookings.length)
                     }`}
                     className={`block h-full min-h-16 p-1.5 transition hover:bg-violet-50 sm:min-h-24 sm:p-2 dark:hover:bg-violet-500/10 ${
                       !inMonth ? "opacity-35" : isPast ? "opacity-55" : ""
@@ -718,12 +711,12 @@ export default async function BookingPage({
                           }`}
                         >
                           <span className="tabular-nums">{formatTime(b.startsAt)}</span>{" "}
-                          {b.userId === user.id ? "You" : displayName(b.user).split(" ")[0]}
+                          {b.userId === user.id ? tb.you : displayName(b.user).split(" ")[0]}
                         </span>
                       ))}
                       {hidden > 0 && (
                         <span className="block px-1 text-[11px] text-gray-500 dark:text-gray-400">
-                          +{hidden} more
+                          {tb.more(hidden)}
                         </span>
                       )}
                     </span>
@@ -733,7 +726,7 @@ export default async function BookingPage({
             })}
           </ol>
           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            All times are Danish time. Tap a day to see its week in detail.
+            {tb.monthHint}
           </p>
         </div>
       ) : (
@@ -752,16 +745,16 @@ export default async function BookingPage({
                 >
                   <div className="flex items-baseline justify-between gap-2">
                     <h3 className="font-medium">
-                      {formatDay(day)}
+                      {formatDay(day, "long", locale)}
                       {day === todayKey && (
                         <span className="ml-2 text-xs font-normal text-violet-700 dark:text-violet-400">
-                          today
+                          {tb.today}
                         </span>
                       )}
                     </h3>
                     {dayBookings.length === 0 && (
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        Free all day
+                        {tb.freeAllDay}
                       </span>
                     )}
                   </div>
@@ -819,7 +812,7 @@ export default async function BookingPage({
                                     : ""
                                 }
                               >
-                                {mineHere ? "You" : displayName(b.user)}
+                                {mineHere ? tb.you : displayName(b.user)}
                               </span>
                               {b.note && (
                                 <span className="text-gray-500 dark:text-gray-400">
@@ -830,6 +823,7 @@ export default async function BookingPage({
                             </span>
                             {canCancel && (
                               <BookingActions
+                    labels={actionLabels}
                                 bookingId={b.id}
                                 state={state}
                                 canEdit={canEdit}
@@ -845,17 +839,17 @@ export default async function BookingPage({
             })}
           </ol>
           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            All times are Danish time.
+            {tb.danishTime}
           </p>
         </>
       )}
 
       {/* The member's own upcoming bookings, both rooms */}
       <section className="mt-12">
-        <h2 className="text-xl font-semibold">Your upcoming bookings</h2>
+        <h2 className="text-xl font-semibold">{tb.upcomingTitle}</h2>
         {mine.length === 0 ? (
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Nothing booked yet.
+            {tb.nothingBooked}
           </p>
         ) : (
           <ul className="mt-4 divide-y divide-gray-200 dark:divide-gray-800">
@@ -870,9 +864,9 @@ export default async function BookingPage({
                     href={calendarUrl({ room: b.room, view: "week", anchor: startOfWeek(bookingDay) })}
                     className="hover:underline"
                   >
-                    <span className="font-medium">{roomLabel(b.room)}</span>
+                    <span className="font-medium">{tb.rooms[b.room]}</span>
                     {" · "}
-                    {formatDay(bookingDay, "short")}
+                    {formatDay(bookingDay, "short", locale)}
                     {" · "}
                     <span className="font-mono tabular-nums">
                       {formatTimeRange(b.startsAt, b.endsAt)}
@@ -885,6 +879,7 @@ export default async function BookingPage({
                     )}
                   </Link>
                   <BookingActions
+                    labels={actionLabels}
                     bookingId={b.id}
                     state={state}
                     canEdit={bookable && b.startsAt > now}

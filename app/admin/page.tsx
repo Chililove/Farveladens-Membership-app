@@ -5,21 +5,10 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { membershipRepository } from "@/lib/repositories/membershipRepository";
 import { getMembershipStatus } from "@/lib/membership";
+import { getI18n } from "@/lib/i18n/server";
+import { localeOf } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
-
-function formatDate(date: Date | null) {
-  return date
-    ? new Intl.DateTimeFormat("da-DK", { dateStyle: "medium" }).format(date)
-    : "-";
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  ACTIVE: "Active",
-  EXPIRING_SOON: "Expiring soon",
-  EXPIRED: "Expired",
-  NONE: "Never paid",
-};
 
 const STATUS_CLASS: Record<string, string> = {
   ACTIVE: "text-green-700 dark:text-green-400",
@@ -40,6 +29,12 @@ export default async function AdminPage() {
 
   const pending = await membershipRepository.findPendingPayments(scope);
   const members = await membershipRepository.findAllMembers(scope);
+
+  const { lang, t } = await getI18n();
+  const formatDate = (date: Date | null) =>
+    date
+      ? new Intl.DateTimeFormat(localeOf(lang), { dateStyle: "medium" }).format(date)
+      : "-";
 
   async function confirmPayment(formData: FormData) {
     "use server";
@@ -68,27 +63,27 @@ export default async function AdminPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-bold">Admin</h1>
+      <h1 className="text-3xl font-bold">{t.admin.title}</h1>
 
       {/* Add a new member by email */}
       <section className="mt-8 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900/40">
-        <h2 className="font-semibold">Add a member</h2>
+        <h2 className="font-semibold">{t.admin.addTitle}</h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Enter their email. They log in with that email via a magic link.
+          {t.admin.addHelp}
         </p>
         <form action={addMember} className="mt-3 flex gap-2">
           <input
             name="email"
             type="email"
             required
-            placeholder="member@example.com"
+            placeholder={t.admin.addPlaceholder}
             className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 outline-none focus:border-violet-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-violet-500"
           />
           <button
             type="submit"
             className="rounded-full bg-violet-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-violet-500"
           >
-            Add
+            {t.admin.add}
           </button>
         </form>
       </section>
@@ -96,11 +91,11 @@ export default async function AdminPage() {
       {/* Pending payments awaiting confirmation */}
       <section className="mt-8">
         <h2 className="text-xl font-semibold">
-          Payments to confirm ({pending.length})
+          {t.admin.pendingTitle(pending.length)}
         </h2>
         {pending.length === 0 ? (
           <p className="mt-2 text-gray-500 dark:text-gray-400">
-            Nothing waiting. 🎉
+            {t.admin.nothingWaiting}
           </p>
         ) : (
           <ul className="mt-4 divide-y divide-gray-200 dark:divide-gray-800">
@@ -112,7 +107,7 @@ export default async function AdminPage() {
                 <div>
                   <p className="font-medium">{p.user.email}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {p.amountDkk} kr · would extend to {formatDate(p.periodEnd)}
+                    {p.amountDkk} kr · {t.admin.wouldExtend(formatDate(p.periodEnd))}
                   </p>
                 </div>
                 <form action={confirmPayment}>
@@ -121,7 +116,7 @@ export default async function AdminPage() {
                     type="submit"
                     className="rounded-full bg-green-700 px-5 py-2 text-sm font-medium text-white transition hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500"
                   >
-                    Confirm
+                    {t.admin.confirm}
                   </button>
                 </form>
               </li>
@@ -132,15 +127,15 @@ export default async function AdminPage() {
 
       {/* Full member roster */}
       <section className="mt-12">
-        <h2 className="text-xl font-semibold">Members ({members.length})</h2>
+        <h2 className="text-xl font-semibold">{t.admin.membersTitle(members.length)}</h2>
         <table className="mt-4 w-full text-left text-sm">
           <thead className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
             <tr>
-              <th className="w-px whitespace-nowrap py-2 pr-6">Name</th>
-              <th className="py-2">Email</th>
-              <th className="py-2">Status</th>
-              <th className="py-2">Expires</th>
-              <th className="py-2">Rules</th>
+              <th className="w-px whitespace-nowrap py-2 pr-6">{t.admin.columns.name}</th>
+              <th className="py-2">{t.admin.columns.email}</th>
+              <th className="py-2">{t.admin.columns.status}</th>
+              <th className="py-2">{t.admin.columns.expires}</th>
+              <th className="py-2">{t.admin.columns.rules}</th>
             </tr>
           </thead>
           <tbody>
@@ -154,7 +149,7 @@ export default async function AdminPage() {
                   <td className="whitespace-nowrap py-2 pr-6">{m.name ?? "-"}</td>
                   <td className="py-2">{m.email}</td>
                   <td className={`py-2 ${STATUS_CLASS[status]}`}>
-                    {STATUS_LABEL[status]}
+                    {t.admin.status[status]}
                   </td>
                   <td className="py-2">{formatDate(m.membershipExpiresAt)}</td>
                   <td className="py-2">{m.rulesAcceptedAt ? "✅" : "-"}</td>
