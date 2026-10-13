@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeToggle from "@/app/components/ThemeToggle";
@@ -25,8 +25,25 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
-  return { title: t.meta.title, description: t.meta.description };
+  return {
+    title: t.meta.title,
+    description: t.meta.description,
+    // iPhone doesn't read the manifest's icons and display mode, so it gets
+    // its own: an icon for the home screen, and full screen when opened from
+    // there.
+    appleWebApp: {
+      capable: true,
+      title: "Farvelade",
+      statusBarStyle: "black",
+    },
+    icons: { apple: "/apple-touch-icon.png" },
+  };
 }
+
+// Colours the phone's status bar and browser bar to match the dark theme.
+export const viewport: Viewport = {
+  themeColor: "#0a0a0c",
+};
 
 // Runs before first paint so a returning visitor who chose light mode never
 // sees a flash of the dark theme (or the other way round).
