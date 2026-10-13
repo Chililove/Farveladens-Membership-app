@@ -6,8 +6,27 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light mode is paper with paint on it, see PaintSplashes.tsx. The colours
+     match the forening's website (rytmiskfarveladeforening.netlify.app). */
+  --background: #fbf6ec;
+  --foreground: #1b1830;
+}
+
+/* In light mode the app's violet and near-black become the website's violet
+   and ink, so every existing violet and gray-900 class picks them up. Dark mode
+   keeps Tailwind's defaults. */
+html:not(.dark) {
+  --color-violet-50: #f1edff;
+  --color-violet-100: #e6e0ff;
+  --color-violet-200: #d3c8ff;
+  --color-violet-300: #b3a1ff;
+  --color-violet-400: #9a80ff;
+  --color-violet-500: #7c5cff;
+  --color-violet-600: #5f3fe0;
+  --color-violet-700: #5034c4;
+  --color-violet-800: #40299c;
+  --color-gray-900: #1b1830;
+  --color-gray-950: #1b1830;
 }
 
 .dark {
@@ -20,6 +39,87 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces), Georgia, serif;
+
+  /* Soft rytme and lagune for the room tabs in light mode, the same as the
+     splashes, with ink text on top (well above 4.5:1 contrast). */
+  --color-pastel-rytme: #ff957d;
+  --color-pastel-lagune: #65c1b7;
+}
+
+/* Each splash "lands" when the page loads and again whenever the theme is
+   switched (ThemeToggle restarts it). In light mode it's soft and overlaps multiply like real ink. */
+.paint-splash {
+  --splash-opacity: 0.9;
+  transform: var(--splash-rotate);
+  mix-blend-mode: multiply;
+  opacity: var(--splash-opacity);
+  animation: splash-land 520ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  animation-delay: var(--splash-delay);
+}
+
+.paint-splash-fill {
+  fill: var(--paint-light);
+}
+
+/* Dark mode: the same splashes in glow-in-the-dark UV paint. Neon colour, a
+   soft glow around each shape, and screen blending so overlaps get brighter
+   instead of darker. Toned down a little so text on top stays readable. */
+.dark .paint-splash {
+  --splash-opacity: 0.75;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 10px var(--paint-dark))
+    drop-shadow(0 0 28px var(--paint-dark));
+}
+
+.dark .paint-splash-fill {
+  fill: var(--paint-dark);
+}
+
+@keyframes splash-land {
+  from {
+    transform: var(--splash-rotate) scale(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: var(--splash-rotate) scale(1);
+    opacity: var(--splash-opacity);
+  }
+}
+
+/* The logo's bars bounce up like an equalizer while the splashes land. */
+.logo-bar {
+  /* "backwards", not "both": once the bounce is over the bars go back to
+     their normal styles, so the hover grow (as on the website) still works. */
+  animation: bar-bounce 700ms cubic-bezier(0.3, 1.6, 0.5, 1) backwards;
+  animation-delay: calc(200ms + var(--bar-delay));
+}
+
+@keyframes bar-bounce {
+  0% {
+    transform: scaleY(0.15);
+  }
+  45% {
+    transform: scaleY(1.25);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paint-splash,
+  .logo-bar {
+    animation: none;
+  }
+}
+
+/* On narrow screens the splashes can't stay in the margins, so they step
+   back to keep text readable. */
+@media (max-width: 767px) {
+  .paint-splashes {
+    opacity: 0.45;
+  }
 }
 
 body {

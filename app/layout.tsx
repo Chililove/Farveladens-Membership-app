@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeToggle from "@/app/components/ThemeToggle";
+import PaintSplashes from "@/app/components/PaintSplashes";
+import Logo from "@/app/components/Logo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+// The forening's display font, used for the logo like on their website.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
 });
 
@@ -39,14 +47,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full flex flex-col bg-white text-gray-900 dark:bg-[#0a0a0c] dark:text-gray-100">
-        <ThemeToggle />
+      <body className="min-h-full flex flex-col bg-[#fbf6ec] text-gray-900 dark:bg-[#0a0a0c] dark:text-gray-100">
+        <PaintSplashes />
+        {/* Header like the forening's website: logo left, theme toggle right. */}
+        <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 pt-6">
+          <Logo />
+          <ThemeToggle />
+        </header>
         {children}
       </body>
     </html>
