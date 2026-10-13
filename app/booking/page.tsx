@@ -404,6 +404,7 @@ export default async function BookingPage({
           <Link
             key={r.id}
             href={calendarUrl({ ...state, room: r.id })}
+            scroll={false}
             aria-current={r.id === room ? "page" : undefined}
             className={
               r.id === room
@@ -570,7 +571,9 @@ export default async function BookingPage({
         </section>
       )}
 
-      {/* Heading, week/month toggle and navigation */}
+      {/* Heading, week/month toggle and navigation. These links use
+          scroll={false} so switching view or week keeps the calendar where it
+          is instead of jumping back to the top of the page. */}
       <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">
           {roomLabel(room)} ·{" "}
@@ -590,6 +593,7 @@ export default async function BookingPage({
             <Link
               key={id}
               href={calendarUrl(target)}
+              scroll={false}
               aria-current={view === id ? "page" : undefined}
               className={
                 view === id
@@ -605,29 +609,29 @@ export default async function BookingPage({
       <div className="mt-2 flex gap-4 text-sm">
         {view === "month" ? (
           <>
-            <Link href={calendarUrl({ ...state, anchor: addMonths(month, -1) })} className={linkClass}>
+            <Link href={calendarUrl({ ...state, anchor: addMonths(month, -1) })} className={linkClass} scroll={false}>
               ← Previous
             </Link>
             {month !== monthOf(todayKey) && (
-              <Link href={calendarUrl({ ...state, anchor: monthOf(todayKey) })} className={linkClass}>
+              <Link href={calendarUrl({ ...state, anchor: monthOf(todayKey) })} className={linkClass} scroll={false}>
                 This month
               </Link>
             )}
-            <Link href={calendarUrl({ ...state, anchor: addMonths(month, 1) })} className={linkClass}>
+            <Link href={calendarUrl({ ...state, anchor: addMonths(month, 1) })} className={linkClass} scroll={false}>
               Next →
             </Link>
           </>
         ) : (
           <>
-            <Link href={calendarUrl({ ...state, anchor: addDays(week, -7) })} className={linkClass}>
+            <Link href={calendarUrl({ ...state, anchor: addDays(week, -7) })} className={linkClass} scroll={false}>
               ← Previous
             </Link>
             {week !== startOfWeek(todayKey) && (
-              <Link href={calendarUrl({ ...state, anchor: startOfWeek(todayKey) })} className={linkClass}>
+              <Link href={calendarUrl({ ...state, anchor: startOfWeek(todayKey) })} className={linkClass} scroll={false}>
                 This week
               </Link>
             )}
-            <Link href={calendarUrl({ ...state, anchor: addDays(week, 7) })} className={linkClass}>
+            <Link href={calendarUrl({ ...state, anchor: addDays(week, 7) })} className={linkClass} scroll={false}>
               Next →
             </Link>
           </>
@@ -657,6 +661,7 @@ export default async function BookingPage({
                 <li key={day} className="bg-white dark:bg-[#0a0a0c]">
                   <Link
                     href={calendarUrl({ room, view: "week", anchor: startOfWeek(day) })}
+                    scroll={false}
                     aria-label={`${formatDay(day)}: ${
                       dayBookings.length === 0
                         ? "free all day"
