@@ -12,6 +12,8 @@ export const TIME_ZONE = "Europe/Copenhagen";
 
 export type Room = "STUDIO" | "STAGE";
 
+// Labels here are the English names; the pages show the visitor's language
+// from lib/i18n/dictionaries.ts.
 export const ROOMS: { id: Room; label: string }[] = [
   { id: "STUDIO", label: "Studio" },
   { id: "STAGE", label: "Stage" },
@@ -144,12 +146,20 @@ export function monthGridDays(month: string): string[] {
   return days;
 }
 
-export function formatMonth(month: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "UTC",
-    month: "long",
-    year: "numeric",
-  }).format(dayToUtcMidnight(`${month}-01`));
+/** Danish month and day names are lower case; headings want a capital. */
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** "October 2026" / "Oktober 2026", in the given locale. */
+export function formatMonth(month: string, locale = "en-GB"): string {
+  return capitalize(
+    new Intl.DateTimeFormat(locale, {
+      timeZone: "UTC",
+      month: "long",
+      year: "numeric",
+    }).format(dayToUtcMidnight(`${month}-01`)),
+  );
 }
 
 // ---- Converting between Danish wall-clock time and real moments ----
@@ -232,13 +242,20 @@ export function formatTimeRange(startsAt: Date, endsAt: Date): string {
   return `${formatTime(startsAt)}-${end}`;
 }
 
-export function formatDay(day: string, weekday: "long" | "short" = "long"): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "UTC",
-    weekday,
-    day: "numeric",
-    month: "long",
-  }).format(dayToUtcMidnight(day));
+/** "Tuesday 13 October" / "Tirsdag den 13. oktober", in the given locale. */
+export function formatDay(
+  day: string,
+  weekday: "long" | "short" = "long",
+  locale = "en-GB",
+): string {
+  return capitalize(
+    new Intl.DateTimeFormat(locale, {
+      timeZone: "UTC",
+      weekday,
+      day: "numeric",
+      month: "long",
+    }).format(dayToUtcMidnight(day)),
+  );
 }
 
 /** Members are added by email only, so fall back to a tidied-up local part. */

@@ -36,7 +36,12 @@ function replaySplashes() {
   });
 }
 
-export default function ThemeToggle() {
+// Labels come from the server in the visitor's language (see layout.tsx).
+export default function ThemeToggle({
+  labels,
+}: {
+  labels: { toLight: string; toLightTitle: string; toDark: string };
+}) {
   const isDark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   function toggle() {
@@ -56,8 +61,8 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Switch to the colourful light mode" : "Switch to dark mode"}
+      aria-label={isDark ? labels.toLight : labels.toDark}
+      title={isDark ? labels.toLightTitle : labels.toDark}
       className="rounded-full border border-gray-300 bg-white/80 p-2.5 text-gray-600 backdrop-blur transition hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-400 dark:hover:text-gray-100"
     >
       {isDark ? (

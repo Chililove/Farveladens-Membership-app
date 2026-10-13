@@ -28,6 +28,9 @@ between meetings.
 - A board member confirms the transfer arrived, which extends the membership.
 - Everyone can see their own status: active, expiring soon, expired.
 - The board gets an email every second week listing what needs attention.
+- The app is in Danish by default, with a DA | EN switch in the header. All
+  texts live in `lib/i18n/dictionaries.ts`, and the build fails if a text is
+  missing in either language.
 - Active members can book the studio or the stage at `/booking`, see who has
   booked what in a week or month view, and cancel their own bookings. The forening's website links
   straight there; anyone not logged in is sent back after signing in.

@@ -16,11 +16,11 @@ const BARS = [
   { x: 32, y: 16, height: 16, color: "#E63888" }, // bær
 ];
 
-export default function Logo() {
+export default function Logo({ label }: { label: string }) {
   return (
     <Link
       href="/dashboard"
-      aria-label="Rytmisk Farvelade, go to your membership"
+      aria-label={label}
       className="group flex items-center gap-3 rounded-lg"
     >
       <svg viewBox="0 0 40 32" className="h-8 w-10" aria-hidden="true">
