@@ -386,7 +386,7 @@ export default async function BookingPage({
     : { room, day: defaultDay, start: "18:00", end: "21:00", note: "" };
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto w-full max-w-3xl px-6 py-16">
       <Link
         href="/dashboard"
         className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"

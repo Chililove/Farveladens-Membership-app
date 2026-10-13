@@ -67,7 +67,7 @@ export default async function AdminPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto w-full max-w-3xl px-6 py-16">
       <h1 className="text-3xl font-bold">Admin</h1>
 
       {/* Add a new member by email */}
@@ -136,7 +136,7 @@ export default async function AdminPage() {
         <table className="mt-4 w-full text-left text-sm">
           <thead className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
             <tr>
-              <th className="py-2">Name</th>
+              <th className="w-px whitespace-nowrap py-2 pr-6">Name</th>
               <th className="py-2">Email</th>
               <th className="py-2">Status</th>
               <th className="py-2">Expires</th>
@@ -151,7 +151,7 @@ export default async function AdminPage() {
                   key={m.id}
                   className="border-b border-gray-100 dark:border-gray-800/60"
                 >
-                  <td className="py-2">{m.name ?? "-"}</td>
+                  <td className="whitespace-nowrap py-2 pr-6">{m.name ?? "-"}</td>
                   <td className="py-2">{m.email}</td>
                   <td className={`py-2 ${STATUS_CLASS[status]}`}>
                     {STATUS_LABEL[status]}
