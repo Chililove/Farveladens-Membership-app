@@ -31,7 +31,7 @@ const en = {
   login: {
     title: "Farveladen Membership",
     intro1:
-      "Rytmisk Farvelade Forening is a volunteer-run music studio. Members pay their dues by transferring the money to the club's account - there's no card payment or automatic collection yet, because the board hasn't decided which provider is worth the fees.",
+      "Rytmisk Farvelade Forening is a volunteer-run music studio. Members pay their dues by transferring the money to the club's account themselves.",
     intro2:
       "Keeping track of who had paid meant a spreadsheet and a lot of chasing. This app replaces that. A member picks a plan and registers their transfer, someone on the board confirms it arrived, and everyone can see their own status. The board gets a summary by email every second week so nobody has to remember to check.",
     demoTitle: "Try it - no sign-up needed",
@@ -220,7 +220,7 @@ const da: Dictionary = {
   login: {
     title: "Farveladen Medlemskab",
     intro1:
-      "Rytmisk Farvelade Forening er et frivilligt drevet musikstudie. Medlemmer betaler kontingent ved selv at overføre pengene til foreningens konto - der er endnu ingen kortbetaling eller automatisk opkrævning, fordi bestyrelsen ikke har besluttet, hvilken udbyder der er gebyrerne værd.",
+      "Rytmisk Farvelade Forening er et frivilligt drevet musikstudie. Medlemmer betaler kontingent ved selv at overføre pengene til foreningens konto.",
     intro2:
       "Før holdt vi styr på, hvem der havde betalt, med et regneark og en masse rykkere. Den app erstatter det. Et medlem vælger en plan og registrerer sin overførsel, en fra bestyrelsen bekræfter, at pengene er kommet, og alle kan se deres egen status. Bestyrelsen får en opsummering på mail hver anden uge, så ingen skal huske at tjekke.",
     demoTitle: "Prøv den - uden at oprette dig",
