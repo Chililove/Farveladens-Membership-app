@@ -29,6 +29,7 @@ model User {
   // login and excluded from the board's digest.
   isDemo              Boolean   @default(false)
   payments            Payment[]
+  bookings            Booking[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -80,6 +81,26 @@ model Payment {
   reference   String?
   createdAt   DateTime      @default(now())
   confirmedAt DateTime?
+}
+
+// A member's reservation of the studio or the stage. Times are stored in UTC;
+// the app converts to and from Danish time (Europe/Copenhagen) at the edges.
+model Booking {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  room      Room
+  startsAt  DateTime
+  endsAt    DateTime
+  note      String? // optional "what for", e.g. "band rehearsal"
+  createdAt DateTime @default(now())
+
+  @@index([room, startsAt])
+}
+
+enum Room {
+  STUDIO
+  STAGE
 }
 
 enum Role {

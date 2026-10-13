@@ -87,12 +87,18 @@ export const membershipRepository = {
     return prisma.user.create({ data: { email, isDemo } });
   },
 
-  // Record that a member accepted the rules (timestamp doubles as the audit log).
-  acceptRules(userId: string) {
+  // Record that a member accepted the rules (timestamp doubles as the audit
+  // log), together with the name they want shown to other members.
+  acceptRules(userId: string, name: string) {
     return prisma.user.update({
       where: { id: userId },
-      data: { rulesAcceptedAt: new Date() },
+      data: { rulesAcceptedAt: new Date(), name },
     });
+  },
+
+  // A member setting or changing their display name.
+  setName(userId: string, name: string) {
+    return prisma.user.update({ where: { id: userId }, data: { name } });
   },
 
   // ---- Digest ----

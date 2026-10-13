@@ -136,6 +136,7 @@ export default async function AdminPage() {
         <table className="mt-4 w-full text-left text-sm">
           <thead className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
             <tr>
+              <th className="py-2">Name</th>
               <th className="py-2">Email</th>
               <th className="py-2">Status</th>
               <th className="py-2">Expires</th>
@@ -150,6 +151,7 @@ export default async function AdminPage() {
                   key={m.id}
                   className="border-b border-gray-100 dark:border-gray-800/60"
                 >
+                  <td className="py-2">{m.name ?? "-"}</td>
                   <td className="py-2">{m.email}</td>
                   <td className={`py-2 ${STATUS_CLASS[status]}`}>
                     {STATUS_LABEL[status]}

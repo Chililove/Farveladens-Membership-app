@@ -8,6 +8,7 @@
 
 // Relative rather than the "@/" alias so the seed script works under tsx too.
 import prisma from "./prisma";
+import { addDays, danishTimeToDate, today, type Room } from "./booking";
 
 export const DEMO_MEMBER_EMAIL = "demo-member@farveladen.demo";
 export const DEMO_ADMIN_EMAIL = "demo-admin@farveladen.demo";
@@ -26,14 +27,14 @@ function daysFromNow(days: number): Date {
 // Fixed ids rather than generated ones, so fake members and their payments can
 // be inserted in bulk without a round trip in between to look the ids up.
 const FAKE_MEMBERS = [
-  { id: "demo-astrid", email: "astrid.holm@example.dk", expiresInDays: 240, rulesAccepted: true },
-  { id: "demo-mikkel", email: "mikkel.bak@example.dk", expiresInDays: 120, rulesAccepted: true },
-  { id: "demo-sofie", email: "sofie.krogh@example.dk", expiresInDays: 21, rulesAccepted: true },
-  { id: "demo-jonas", email: "jonas.vinter@example.dk", expiresInDays: 5, rulesAccepted: true },
-  { id: "demo-laura", email: "laura.bjerre@example.dk", expiresInDays: -14, rulesAccepted: true },
-  { id: "demo-emil", email: "emil.thorsen@example.dk", expiresInDays: -95, rulesAccepted: true },
-  { id: "demo-nanna", email: "nanna.friis@example.dk", expiresInDays: null, rulesAccepted: true },
-  { id: "demo-oscar", email: "oscar.lind@example.dk", expiresInDays: null, rulesAccepted: false },
+  { id: "demo-astrid", name: "Astrid Holm", email: "astrid.holm@example.dk", expiresInDays: 240, rulesAccepted: true },
+  { id: "demo-mikkel", name: "Mikkel Bak", email: "mikkel.bak@example.dk", expiresInDays: 120, rulesAccepted: true },
+  { id: "demo-sofie", name: "Sofie Krogh", email: "sofie.krogh@example.dk", expiresInDays: 21, rulesAccepted: true },
+  { id: "demo-jonas", name: "Jonas Vinter", email: "jonas.vinter@example.dk", expiresInDays: 5, rulesAccepted: true },
+  { id: "demo-laura", name: "Laura Bjerre", email: "laura.bjerre@example.dk", expiresInDays: -14, rulesAccepted: true },
+  { id: "demo-emil", name: "Emil Thorsen", email: "emil.thorsen@example.dk", expiresInDays: -95, rulesAccepted: true },
+  { id: "demo-nanna", name: "Nanna Friis", email: "nanna.friis@example.dk", expiresInDays: null, rulesAccepted: true },
+  { id: "demo-oscar", name: null, email: "oscar.lind@example.dk", expiresInDays: null, rulesAccepted: false },
 ];
 
 // Fake members waiting for an admin to confirm their transfer.
@@ -43,11 +44,31 @@ const FAKE_PENDING = [
   { id: "demo-pay-emil", userId: "demo-emil", amountDkk: 1200, months: 12 },
 ];
 
+// Fake studio and stage bookings over the coming days, so the calendar has
+// something on it. Days are counted from today; times are Danish time.
+const FAKE_BOOKINGS: {
+  id: string;
+  userId: string;
+  room: Room;
+  inDays: number;
+  from: number; // hour
+  to: number;
+  note: string | null;
+}[] = [
+  { id: "demo-book-1", userId: "demo-astrid", room: "STUDIO", inDays: 1, from: 17, to: 20, note: "Mixing the EP" },
+  { id: "demo-book-2", userId: "demo-mikkel", room: "STAGE", inDays: 1, from: 18, to: 22, note: "Band rehearsal" },
+  { id: "demo-book-3", userId: "demo-sofie", room: "STUDIO", inDays: 2, from: 10, to: 13, note: "Recording vocals" },
+  { id: "demo-book-4", userId: "demo-jonas", room: "STAGE", inDays: 3, from: 19, to: 22, note: "Gig practice" },
+  { id: "demo-book-5", userId: "demo-mikkel", room: "STUDIO", inDays: 4, from: 16, to: 18, note: null },
+  { id: "demo-book-6", userId: "demo-astrid", room: "STAGE", inDays: 5, from: 14, to: 17, note: "Choir" },
+];
+
 const FAKE_IDS = FAKE_MEMBERS.map((m) => m.id);
 
 function fakeMemberRows() {
   return FAKE_MEMBERS.map((member) => ({
     id: member.id,
+    name: member.name,
     email: member.email,
     role: "MEMBER" as const,
     emailVerified: new Date(),
@@ -67,6 +88,21 @@ function fakePaymentRows() {
     method: "MOBILEPAY" as const,
     status: "PENDING" as const,
   }));
+}
+
+function fakeBookingRows() {
+  const start = today();
+  return FAKE_BOOKINGS.map((booking) => {
+    const day = addDays(start, booking.inDays);
+    return {
+      id: booking.id,
+      userId: booking.userId,
+      room: booking.room,
+      startsAt: danishTimeToDate(day, booking.from * 60),
+      endsAt: danishTimeToDate(day, booking.to * 60),
+      note: booking.note,
+    };
+  });
 }
 
 /** The two fixed accounts. Upserted so their ids survive between resets. */
@@ -122,10 +158,14 @@ export async function resetDemoData() {
     prisma.payment.deleteMany({
       where: { userId: { in: [demoMember.id, demoAdmin.id] } },
     }),
+    prisma.booking.deleteMany({
+      where: { userId: { in: [demoMember.id, demoAdmin.id] } },
+    }),
     prisma.user.update({
       where: { id: demoMember.id },
       data: {
-        name: "Demo Member",
+        // No name and no rules: visitors go through onboarding like a new member.
+        name: null,
         role: "MEMBER",
         rulesAcceptedAt: null,
         membershipExpiresAt: null,
@@ -133,6 +173,7 @@ export async function resetDemoData() {
     }),
     prisma.user.createMany({ data: fakeMemberRows() }),
     prisma.payment.createMany({ data: fakePaymentRows() }),
+    prisma.booking.createMany({ data: fakeBookingRows() }),
   ]);
 
   return { demoMember, demoAdmin };
@@ -168,6 +209,8 @@ export async function topUpDemoData() {
     });
   }
 
+  // Fake bookings deleted by a visitor are left alone here: they'd come back
+  // with fresh dates on the next member reset anyway.
   return { demoMember, demoAdmin };
 }
 

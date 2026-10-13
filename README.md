@@ -21,11 +21,16 @@ between meetings.
 
 ## What this does
 
+- On first login a member gives the name other members will see and accepts
+  the club rules.
 - A member picks a plan and registers that they are going to transfer the money.
 - The app shows them the amount and where to send it.
 - A board member confirms the transfer arrived, which extends the membership.
 - Everyone can see their own status: active, expiring soon, expired.
 - The board gets an email every second week listing what needs attention.
+- Active members can book the studio or the stage at `/booking`, see who has
+  booked what in a week or month view, and cancel their own bookings. The forening's website links
+  straight there; anyone not logged in is sent back after signing in.
 
 ## Design decisions
 
@@ -47,6 +52,11 @@ hasn't already added, so the admin "Add a member" form is the real gate.
 **Plans are resolved server-side.** The plan id travels in the form, but the
 amount and duration are looked up on the server, so a tampered form can't buy a
 year for the price of a month.
+
+**Booking can't double-book.** Checking for a clash and inserting the booking
+run in one serializable transaction, so two members grabbing the same evening
+at the same moment can't both get it. Times are entered and shown in Danish
+time and stored in UTC, so bookings stay put across the clock changes.
 
 **Fortnightly, not weekly.** Cron has no fortnightly expression, so the job runs
 every Monday and only sends on even ISO weeks. Vercel's Hobby plan caps cron at
