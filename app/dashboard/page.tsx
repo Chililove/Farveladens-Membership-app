@@ -10,6 +10,12 @@ import {
   MEMBERSHIP_PLANS,
   MOBILEPAY_NUMBER,
 } from "@/lib/membership";
+import {
+  NAME_MAX_LENGTH,
+  needsOnboarding,
+  normalizeName,
+  onboardingUrl,
+} from "@/lib/onboarding";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +30,8 @@ export default async function DashboardPage() {
   const user = await membershipRepository.findUserWithPayments(session.user.id);
   if (!user) redirect("/login");
 
-  // Must accept the rules before using the dashboard.
-  if (!user.rulesAcceptedAt) redirect("/rules");
+  // Must accept the rules and give a name before using the dashboard.
+  if (needsOnboarding(user)) redirect(onboardingUrl("/dashboard"));
 
   const status = getMembershipStatus(user.membershipExpiresAt);
   const pending = user.payments.find((p) => p.status === "PENDING");
@@ -51,12 +57,46 @@ export default async function DashboardPage() {
     revalidatePath("/dashboard");
   }
 
+  async function updateName(formData: FormData) {
+    "use server";
+    const s = await auth();
+    if (!s) return;
+    const name = normalizeName(formData.get("name"));
+    if (!name) return; // an empty name would just bounce them to onboarding
+    await membershipRepository.setName(s.user.id, name);
+    revalidatePath("/dashboard");
+  }
+
   return (
     <main className="mx-auto max-w-xl px-6 py-16">
       <h1 className="text-3xl font-bold">Your membership</h1>
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Signed in as {user.email}
+        Hi {user.name} · Signed in as {user.email}
       </p>
+
+      {/* No client JS needed: <details> opens and closes on its own. */}
+      <details className="mt-1 text-sm">
+        <summary className="cursor-pointer text-gray-500 underline underline-offset-2 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+          Change name
+        </summary>
+        <form action={updateName} className="mt-2 flex gap-2">
+          <input
+            name="name"
+            type="text"
+            required
+            maxLength={NAME_MAX_LENGTH}
+            defaultValue={user.name ?? ""}
+            aria-label="Your name"
+            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none focus:border-violet-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:focus:border-violet-500"
+          />
+          <button
+            type="submit"
+            className="rounded-full bg-violet-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-violet-500"
+          >
+            Save
+          </button>
+        </form>
+      </details>
 
       {user.role === "ADMIN" && (
         <Link
@@ -67,7 +107,22 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      <div className="mt-8 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900/40">
+      <Link
+        href="/booking"
+        className="mt-8 flex items-center justify-between rounded-xl border border-violet-200 bg-violet-50 p-5 transition hover:border-violet-400 dark:border-violet-500/30 dark:bg-violet-500/10 dark:hover:border-violet-500/60"
+      >
+        <span>
+          <span className="block font-semibold">Book the studio or stage</span>
+          <span className="block text-sm text-gray-600 dark:text-gray-400">
+            See who&apos;s booked when, and book your own time.
+          </span>
+        </span>
+        <span aria-hidden className="text-violet-700 dark:text-violet-400">
+          →
+        </span>
+      </Link>
+
+      <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900/40">
         {status === "ACTIVE" && (
           <p className="text-green-700 dark:text-green-400">
             ✅ Active - valid until{" "}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth, signIn, signOut } from "@/auth";
 import { DEMO_ENABLED } from "@/lib/demo";
+import { safeNext } from "@/lib/onboarding";
 
 const REPO_URL = "https://github.com/Chililove/Farveladens-Membership-app";
 
@@ -9,9 +10,12 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, next: nextParam } = await searchParams;
+  // Where to go after signing in. Lets the forening's website link straight to
+  // /booking: the visitor logs in and lands back there.
+  const next = safeNext(nextParam);
   const session = await auth();
 
   return (
@@ -24,7 +28,7 @@ export default async function LoginPage({
             Signed in as {session.user.email}
           </span>
           <Link
-            href="/dashboard"
+            href={next}
             className="text-violet-700 underline underline-offset-2 hover:text-violet-600 dark:text-violet-400 dark:hover:text-violet-300"
           >
             Continue
@@ -77,7 +81,7 @@ export default async function LoginPage({
                 "use server";
                 await signIn("demo", {
                   role: "MEMBER",
-                  redirectTo: "/dashboard",
+                  redirectTo: next,
                 });
               }}
               className="flex-1"
@@ -136,7 +140,7 @@ export default async function LoginPage({
             "use server";
             await signIn("resend", {
               email: String(formData.get("email")),
-              redirectTo: "/dashboard",
+              redirectTo: next,
             });
           }}
           className="mt-5 flex flex-col gap-3 sm:flex-row"
