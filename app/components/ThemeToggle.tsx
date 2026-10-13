@@ -24,6 +24,18 @@ function getServerSnapshot() {
   return true;
 }
 
+// Restart the splashes' "landing" animation (and the logo's bouncing bars) so
+// they splash in again in the new theme's colours. Clearing the animation, forcing a reflow and putting
+// it back is the standard way to replay a CSS animation. People who prefer
+// reduced motion have no animation in the CSS, so nothing replays for them.
+function replaySplashes() {
+  document.querySelectorAll<SVGElement>(".paint-splash, .logo-bar").forEach((splash) => {
+    splash.style.animation = "none";
+    void splash.getBoundingClientRect();
+    splash.style.animation = "";
+  });
+}
+
 export default function ThemeToggle() {
   const isDark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
@@ -37,6 +49,7 @@ export default function ThemeToggle() {
       // page view, it just won't be remembered.
     }
     listeners.forEach((onChange) => onChange());
+    replaySplashes();
   }
 
   return (
@@ -44,23 +57,26 @@ export default function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="fixed right-4 top-4 z-50 rounded-full border border-gray-300 bg-white/80 p-2.5 text-gray-600 backdrop-blur transition hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-400 dark:hover:text-gray-100"
+      title={isDark ? "Switch to the colourful light mode" : "Switch to dark mode"}
+      className="rounded-full border border-gray-300 bg-white/80 p-2.5 text-gray-600 backdrop-blur transition hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-400 dark:hover:text-gray-100"
     >
       {isDark ? (
-        // Sun
+        // Paint palette with colour dabs: light mode is the colourful one.
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           strokeWidth="1.8"
-          strokeLinecap="round"
+          strokeLinejoin="round"
           className="h-4 w-4"
           aria-hidden="true"
         >
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          <path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-1.4-1.3-1.9-1.3-3.1 0-1.1.9-2 2-2H17a4 4 0 0 0 4-4C21 6.2 17 3 12 3z" />
+          <circle cx="7.5" cy="11" r="1.4" fill="#FF6B4A" stroke="none" />
+          <circle cx="10" cy="7" r="1.4" fill="#FFC94A" stroke="none" />
+          <circle cx="15" cy="7" r="1.4" fill="#7C5CFF" stroke="none" />
+          <circle cx="8.5" cy="15.5" r="1.4" fill="#1F9E93" stroke="none" />
         </svg>
       ) : (
         // Moon

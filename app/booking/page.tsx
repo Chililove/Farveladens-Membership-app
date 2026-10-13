@@ -62,6 +62,19 @@ const MONTH_CELL_LIMIT = 3;
 
 type View = "week" | "month";
 
+// Each room has its own colour in light mode, so it's obvious which calendar
+// you're looking at. Dark mode keeps the app's violet.
+const ROOM_STYLE: Record<Room, { tab: string; edge: string }> = {
+  STUDIO: {
+    tab: "bg-pastel-rytme text-gray-900 dark:bg-violet-600 dark:text-white",
+    edge: "border-t-4 border-t-pastel-rytme dark:border-t-gray-800",
+  },
+  STAGE: {
+    tab: "bg-pastel-lagune text-gray-900 dark:bg-violet-600 dark:text-white",
+    edge: "border-t-4 border-t-pastel-lagune dark:border-t-gray-800",
+  },
+};
+
 // What the calendar is showing. `anchor` is the Monday of the week in week
 // view, or "YYYY-MM" in month view.
 type CalendarState = { room: Room; view: View; anchor: string };
@@ -408,7 +421,7 @@ export default async function BookingPage({
             aria-current={r.id === room ? "page" : undefined}
             className={
               r.id === room
-                ? "rounded-full bg-violet-600 px-5 py-2 text-sm font-medium text-white"
+                ? `rounded-full px-5 py-2 text-sm font-medium ${ROOM_STYLE[r.id].tab}`
                 : "rounded-full border border-gray-300 px-5 py-2 text-sm font-medium transition hover:border-violet-600 dark:border-gray-700 dark:hover:border-violet-500"
             }
           >
@@ -649,7 +662,7 @@ export default async function BookingPage({
               </div>
             ))}
           </div>
-          <ol className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-gray-200 bg-gray-200 dark:border-gray-800 dark:bg-gray-800">
+          <ol className={`grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-gray-200 bg-gray-200 dark:border-gray-800 dark:bg-gray-800 ${ROOM_STYLE[room].edge}`}>
             {days.map((day) => {
               const dayBookings = byDay.get(day) ?? [];
               const inMonth = monthOf(day) === month;
@@ -726,7 +739,7 @@ export default async function BookingPage({
       ) : (
         <>
           {/* The week, one row per day */}
-          <ol className="mt-4 divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
+          <ol className={`mt-4 divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-transparent ${ROOM_STYLE[room].edge}`}>
             {days.map((day) => {
               const dayBookings = byDay.get(day) ?? [];
               const isPast = day < todayKey;
